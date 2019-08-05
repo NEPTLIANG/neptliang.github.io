@@ -15,7 +15,7 @@ tags:
 ![截图](https://img-blog.csdnimg.cn/20190716182635531.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L01JTkdfeDg2,size_16,color_FFFFFF,t_70)
 # 0x00 前言
 
-近段时间买了个树莓派zero w，没想到资料如此匮乏，网上大部分教程都是针对3b+等有网口的版本的，或者是用usb转ttl弄的，好不容易找到几个针对zero w的教程我这里却都用不了，由于~~穷~~不想买usb转ttl，肝了好多天、谷歌+百度了几十个教程、查了几十个疑难杂症，最后到学校图书馆借了本《树莓派用户指南》才配置好，现在记录一下
+近段时间买了个树莓派zero w，没想到资料如此匮乏，网上大部分教程都是针对3b+等有网口的版本的，或者是用usb转ttl弄的，好不容易找到几个针对zero w的教程我这里却都用不了，由于不想买usb转ttl，肝了好多天、谷歌+百度了几十个教程、查了几十个疑难杂症，最后到学校图书馆借了本《树莓派用户指南》才配置好，现在记录一下
 
 **刷入系统和配置USB SSH根据的是这个教程：**[shumeipai.nxez.com/2018/02/20/raspberry-pi-zero-usb-ethernet-gadget-tutorial.html?variant=zh-cn 【树莓派 Zero USB/以太网方式连接配置教程】](http://shumeipai.nxez.com/2018/02/20/raspberry-pi-zero-usb-ethernet-gadget-tutorial.html?variant=zh-cn)，默认用户名：pi，默认密码：raspberry，默认主机名：raspberrypi.local
 
