@@ -9,7 +9,13 @@ header-mask:  0.3
 catalog:      true
 multilingual: true
 tags:
-    - test
+    - Test
 ---
 
 MING has traveled here.
+
+|周一|周二|
+|:---------:|---------:|
+|<h1><font color="red">居中对齐</font></h1>|<div style="color:#00ffff;font-weight:bold;font-size:32px">右对齐</div>|
+|*hhhhhhh*|**fffffffffff**|
+|[莆田搜索](https://www.baidu.com)|

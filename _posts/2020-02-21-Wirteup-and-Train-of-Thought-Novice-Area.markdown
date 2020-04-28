@@ -9,8 +9,9 @@ header-mask:  0.3
 catalog:      true
 multilingual: true
 tags:
-    - sec
-    - writeup
+    - Sec
+    - WebSec
+    - Writeup
 ---
 
 
@@ -376,3 +377,5 @@ h = window.prompt('Enter password');
 alert(dechiffre(h));
 ```
 不是很懂源码中的```String["fromCharCode"]()```是个什么写法；如果是直接改js代码的话要记得把下面的```p += String.fromCharCode(tab2[17])```改成```p += String.fromCharCode(tab2[n-1])```。2020.2.23.Sun
+
+_//End of Article_

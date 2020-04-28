@@ -9,8 +9,9 @@ header-mask:  0.3
 catalog:      true
 multilingual: true
 tags:
-    - sec
-    - writeup
+    - Sec
+    - WebSec
+    - Writeup
 ---
 
 
@@ -431,3 +432,5 @@ dump  log  session.sqlite  target.txt
 ming@Neptune:~/.sqlmap/output/111.198.29.45$ ls dump/
 ming@Neptune:~/.sqlmap/output/111.198.29.45$
 ```
+
+_//未完待xu_
