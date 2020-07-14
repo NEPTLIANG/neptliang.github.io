@@ -54,7 +54,7 @@ for key, value in f.getheaders():
 ```
 
 **输出示例**：
-```http
+```
 Server: nginx
 Date: Tue, 26 May 2015 10:02:27 GMT
 Content-Type: application/json; charset=utf-8
