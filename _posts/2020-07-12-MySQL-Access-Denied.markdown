@@ -113,4 +113,4 @@ res = ser.readline()
 
 3. _[《MySQL 8.0 Reference Manual》13.7.1.10 SET PASSWORD Statement（dev.mysql.com/doc/refman/8.0/en/set-password.html）](https://dev.mysql.com/doc/refman/8.0/en/set-password.html)_
 
-_//End of Article_
+_//未完待xu_

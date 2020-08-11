@@ -17,6 +17,8 @@ tags:
 
 _/* 之前学校计算机社团招新前叫我收集理事们的技术作品来展示，结果只有一位理事交了份作品，我又刚好在网上看到一个安卓的什么“抖X网红时钟动态壁纸”，就试着用CSS和JS整了一个类似的交了上去。所幸最后另一位理事交了第二份作品，用不上我这个。_
 
+![截图](../img/Article/RoteteClock/RoteteClock.png)
+
 _完整源码：[github.com/NEPTLIANG/Web/tree/master/RotateClock/RotateClock\_v1.0](https://github.com/NEPTLIANG/Web/tree/master/RotateClock/RotateClock_v1.0)（v2.0~v4.0都是待修改的半成品） */_
 
 ---
