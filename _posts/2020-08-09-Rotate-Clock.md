@@ -15,11 +15,13 @@ tags:
 
 # 0x00 前言
 
-_/* 之前学校计算机社团招新前叫我收集理事们的技术作品来展示，结果只有一位理事交了份作品，我又刚好在网上看到一个安卓的什么“抖X网红时钟动态壁纸”，就试着用CSS和JS整了一个类似的交了上去。所幸最后另一位理事交了第二份作品，用不上我这个。_
+/* 之前学校计算机社团招新前叫我收集理事们的技术作品来展示，结果只有一位理事交了份作品，我又刚好在网上看到一个安卓的什么“抖X网红时钟动态壁纸”，就试着用CSS和JS整了一个类似的交了上去。所幸最后另一位理事交了第二份作品，用不上我这个 
 
 ![截图](../img/Article/RoteteClock/RoteteClock.png)
 
-_完整源码：[github.com/NEPTLIANG/Web/tree/master/RotateClock/RotateClock\_v1.0](https://github.com/NEPTLIANG/Web/tree/master/RotateClock/RotateClock_v1.0)（v2.0~v4.0都是待修改的半成品） */_
+该玩意纯为本菜鸡练习之作，请各路巨佬勿嘲 
+
+完整源码：[github.com/NEPTLIANG/Web/tree/master/RotateClock/RotateClock\_v1.0](https://github.com/NEPTLIANG/Web/tree/master/RotateClock/RotateClock_v1.0)（v2.0~v4.0都是待修改的半成品） */
 
 ---
 
@@ -65,17 +67,15 @@ body {
 }
 ```
 
-当时还不懂flex布局，只能用px单位给父div整个大概的**居中**：
+给父div整个**绝对定位**：
 
 ```css
 .father {
     position: absolute;
-    top: 600px;
-    left: 1600px;
 }
 ```
 
-因为显示秒的轮的旋转基点（圆心）设置在x轴的-1024px，所以**旋转半径**为1024px，把轮盘**右移**1024px，以便让定位锚点从右边第一行字的左上角移到圆心附近，设置每60秒**旋转**一周：
+因为显示秒的轮的旋转基点（圆心）设置在x轴的-1024px，所以**旋转半径**为1024px，把轮盘**右移**1024px，以便让定位锚点从右边第一行字的左上角移到圆心，设置每60秒**旋转**一周：
 
 ```css
 #wheelOfSeconds {
@@ -166,6 +166,13 @@ body {
 
 
 # 0x03 完成JS
+
+先是两个后面用到的参数，由于调整起来效果不好，就不详述了，保持默认即可，或者可以自己尝试调整一下：
+
+```js
+var rotate = 0;  //设置轮盘3D旋转角度
+var left = -50 + "%";  //设置中间日期位置偏移，默认-50%
+```
 
 实现父div**居中**：
 
@@ -275,6 +282,15 @@ function changeStyle() {
     seconds[(second + 60 - 1) % 60].style.color = "#0ff";  //恢复上一秒的文字样式
     seconds[(second + 60 - 1) % 60].style.color = "rgba(0, 255, 255, 50) 0 0 1em";
 }
+```
+
+设置轮盘3D旋转，这一小段可有可无。就是这里用到了JS部分开头那两个参数，由于实现起来效果不好，所以旋转角度默认设成0：
+
+```js
+father[0].style.transform = `rotate3d(-1, 1, 0, ${rotate}deg)`;
+time.style.transform = `rotate3d(1, 1, 0, ${rotate}deg)`;
+dateDiv.style.transform = `rotate3d(1, 1, 0, ${rotate}deg)`;
+dateDiv.style.left = left;
 ```
 
 最后设置每0.1秒**更新**一次轮盘上的文字样式：
