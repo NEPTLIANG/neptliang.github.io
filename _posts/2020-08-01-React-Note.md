@@ -68,7 +68,7 @@ _//可使用Chrome的React开发者工具插件（React Developer Tools）调试
         ```jsx
         <h1 id='myTitle'>{title}</h1>
         ```
-2. 虚拟DOM对象最终都会被React转换为真实的DOM
+2. 虚拟DOM对象最终都会被React**转换为真实的DOM**
 3. 开发时只需要操作React的虚拟DOM相关数据，React会转换为真实DOM变化而更新界面
 
 ## 渲染虚拟DOM（元素）
@@ -79,8 +79,8 @@ _//可使用Chrome的React开发者工具插件（React Developer Tools）调试
     ```
 2. 作用：将虚拟DOM元素渲染到页面中的真实容器DOM中显示
 3. 参数说明
-    * 参数1：纯JS或JSX创建的虚拟DOM对象
-    * 参数2：用来包含虚拟DOM元素的真实DOM元素对象（一般是一个div）
+    * 参数1：纯JS或JSX创建的**虚拟DOM对象**
+    * 参数2：用来包含虚拟DOM元素的**真实DOM元素对象**（一般是一个div）
 
 ## 虚拟DOM优势
 
@@ -89,21 +89,21 @@ _//可使用Chrome的React开发者工具插件（React Developer Tools）调试
 
 ## JSX简介
 
-1. 全称：JavaScript XML
+1. 全称：**JavaScript XML**
 2. React定义的一种类似于XML的JS拓展语法：XML+JS
 3. 作用：用来创建React虚拟DOM（元素）对象
     ```jsx
     var ele = <h1>Hello JSX!</h1>
     ```
     它不是字符串，也不是HTML/XML标签；  
-    最终产生一个JS对象
+    最终产生一个**JS对象**
 4. 标签名任意：HTML标签或其他标签
 5. 标签属性任意：HTML标签属性或其他
 6. 基本语法规则
-    * 遇到```<```开头的代码，以标签语法解析：  
+    * 遇到```<```开头的代码，以**标签语法**解析：  
         HTML同名标签转换为HTML同名元素，  
         其他标签需要特别解析
-    * 遇到以```{```开头的代码，以JS语法解析：  
+    * 遇到以```{```开头的代码，以**JS语法**解析：  
         标签中的JS代码必须用{}包含
 7. bable.js的作用
     * 浏览器不能直接解析JSX代码，需要babel转译为纯JS才能运行
@@ -135,5 +135,12 @@ _//可使用Chrome的React开发者工具插件（React Developer Tools）调试
 
 *//在js中写```debugger```相当于在Chrome中加断点*
 
+---
 
-_//未完待xu_
+
+# 0x03 后记
+
+发现用Markdown写这个笔记太费时间了，还是改用有道云笔记吧
+
+
+_//End of Article_
