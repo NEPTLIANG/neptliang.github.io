@@ -282,7 +282,7 @@ $pri = ["p" => $p, "q" => $q, "d" => $d];  //私钥
 
 由于我们期末作业的要求是实现RSA算法，所以数字签名的哈希我用了PHP自带的hash函数，其他部分无非调用前面的加解密、补零和还原之类的内容，由于我水平有限，我的实现方法也比较原始（low），这里就不详写了，感兴趣的话可往GitHub浏览源码
 
-**源码**：[github.com/NEPTLIANG/Web/tree/master/SimplifiedRSA](https://github.com/NEPTLIANG/Web/tree/master/SimplifiedRSA)
+**源码链接**：[github.com/NEPTLIANG/Web/tree/master/SimplifiedRSA](https://github.com/NEPTLIANG/Web/tree/master/SimplifiedRSA)
 
 **源码文件目录结构**：
 ```
