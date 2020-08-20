@@ -51,6 +51,8 @@ tags:
 </html>
 ```
 
+![框](https://neptliang.github.io/img/Article/RoteteClock/html.png)
+
 ---
 
 
@@ -66,6 +68,8 @@ body {
     font-size: 32px;
 }
 ```
+
+![背景字体](https://neptliang.github.io/img/Article/RoteteClock/css.png)
 
 给父div整个**绝对定位**：
 
@@ -183,6 +187,8 @@ father[0].style.left = "50%";
 father[0].style.top = (height / 2 - 204).toString() + "px";
 ```
 
+![居中](https://neptliang.github.io/img/Article/RoteteClock/center.png)
+
 **生成轮盘**，轮盘上的文字一条条写太麻烦了，所以用JS生成一下（虽然也方便不了多少，但好歹不用一条条写）。先做一些准备工作：
 
 ```js
@@ -199,7 +205,7 @@ var initMinute = initTime.getMinutes() + initSecond / 60;
 var initHour = initTime.getHours() + initMinute / 60;
 ```
 
-  然后**拼接秒和分钟文字**并插到轮盘div里
+然后**拼接秒和分钟文字**并插到轮盘div里
 
 ```js
 for (i = 0; i < 60; i++) {
@@ -230,7 +236,9 @@ for (i = 0; i < 60; i++) {
 }
 ```
 
-  再拼接小时文字并插到轮盘div里
+![分钟和秒](https://neptliang.github.io/img/Article/RoteteClock/minAndSec.png)
+
+再拼接小时文字并插到轮盘div里
 
 ```js
 for (i = 0; i < 24; i++) {
@@ -252,6 +260,8 @@ for (i = 0; i < 24; i++) {
     wheelOfHours.appendChild(hours[i]);
 }
 ```
+
+![小时](https://neptliang.github.io/img/Article/RoteteClock/hour.png)
 
 整一个函数来**更新时间文字样式**：
 
@@ -298,6 +308,8 @@ dateDiv.style.left = left;
 ```js
 setInterval(changeStyle, 100);
 ```
+
+![更新](https://neptliang.github.io/img/Article/RoteteClock/update.png)
 
 就完事了
 
