@@ -314,3 +314,9 @@ setInterval(changeStyle, 100);
 就完事了
 
 *//End of article*
+
+**参考文献**：
+
+* [@二娃_ 《【自定义View】抖音网红文字时钟-上篇》（juejin.im/post/6844903824503603214）](https://juejin.im/post/6844903824503603214)
+
+![公众号二维码](https://neptliang.github.io/img/Article/WeChatBlog.png)
