@@ -285,10 +285,10 @@ $pri = ["p" => $p, "q" => $q, "d" => $d];  //私钥
 **源码链接**：[github.com/NEPTLIANG/Web/tree/master/SimplifiedRSA](https://github.com/NEPTLIANG/Web/tree/master/SimplifiedRSA)
 
 **源码文件目录结构**：
-```
+```sh
 .
-├── Client  前端页面
-│   ├── DigitalSignature  数字签名页面
+├── Client  #前端页面
+│   ├── DigitalSignature  #数字签名页面
 │   │   ├── DigitalSignature.html
 │   │   └── Style
 │   │       ├── index.css        
@@ -297,16 +297,16 @@ $pri = ["p" => $p, "q" => $q, "d" => $d];  //私钥
 │       └── Style
 │           ├── index.css       
 │           └── Result.css      
-├── index.html  主页，即加解密页面
+├── index.html  #主页，即加解密页面
 └── Server
-    ├── DigitalSignature  数字签名部分
-    │   ├── DigitalSignature.php  数字签名、验证等函数实现
-    │   ├── SignatureResult.php  签名调用及结果页面
-    │   └── VerifyResult.php  签名验证调用及结果页面
-    └── EncryAndDecry  加解密部分
-        ├── DecryptionResult.php  解密调用及结果页面
-        ├── EncryptionResult.php  加密调用及结果页面
-        └── SimplifiedRSA.php  素性检测、加解密等函数实现与密钥生成
+    ├── DigitalSignature  #数字签名部分
+    │   ├── DigitalSignature.php  #数字签名、验证等函数实现
+    │   ├── SignatureResult.php  #签名调用及结果页面
+    │   └── VerifyResult.php  #签名验证调用及结果页面
+    └── EncryAndDecry  #加解密部分
+        ├── DecryptionResult.php  #解密调用及结果页面
+        ├── EncryptionResult.php  #加密调用及结果页面
+        └── SimplifiedRSA.php  #素性检测、加解密等函数实现与密钥生成
 ```
 
 **参考文献：**

