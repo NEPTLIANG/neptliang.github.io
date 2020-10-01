@@ -105,6 +105,29 @@ res = ser.readline()
 
 串口读出的数据同理，在```readline()```后加上```.decode('utf-8')```即可
 
+## 2. 解决终端SSH连接服务器一段时间不操作之后卡死的问题
+
+参考[@一个潘达《解决终端SSH连接服务器一段时间不操作之后卡死的问题》（cnblogs.com/pandawan/p/9893364.html）](https://www.cnblogs.com/pandawan/p/9893364.html)可知，
+
+卡死是因为LIUNX安全设置问题，在一段时间内没有使用数据的情况下会自动断开，解决方法就是让本地或者服务器隔一段时间发送一个请求给对方即可
+
+在本地打开配置文件（不建议在server端设置）
+
+```sh
+sudo vim /etc/ssh/ssh_config
+```
+添加以下参数，如果有直接修改
+
+```
+ServerAliveInterval 50 #每隔50秒就向服务器发送一个请求
+ServerAliveCountMax 3  #允许超时的次数，一般都会响应
+```
+修改完之后重启一下ssh服务
+
+```sh
+sudo /etc/init.d/ssh restart
+```
+
 # 0x06 参考文献：
 
 1. _[@古木堂《重置密码解决MySQL for Linux错误 ERROR 1045 (28000): Access denied for user 'root'@'localhost' (using password: YES)》（cnblogs.com/gumuzi/p/5711495.html）](https://www.cnblogs.com/gumuzi/p/5711495.html)_

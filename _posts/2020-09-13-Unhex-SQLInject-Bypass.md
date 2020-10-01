@@ -1,6 +1,6 @@
 ---
 layout:       post
-title:        "unhex在MySQL终端工具不可用的问题说明"
+title:        "unhex在MySQL终端工具不可用的问题总结"
 subtitle:     "null"
 date:         2020-09-13 02:02:34
 author:       "NeptLiang"
@@ -10,6 +10,8 @@ catalog:      true
 multilingual: true
 tags:
     - MySQL
+    - Sec
+    - WebSec
     - SQLInject
     - Bypass
 ---
