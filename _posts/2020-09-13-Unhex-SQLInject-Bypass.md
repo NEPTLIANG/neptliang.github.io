@@ -26,7 +26,7 @@ FlappyPig的《CTF特训营》Web篇第2章2.10《SQL读写文件》中讲到
 其中介绍的一个写文件的Payload如下：
 
 ```sql
-union select unhex(一句话Shell的十六进制) into dumpfile'/var/www/html/shell.php'
+union select unhex("一句话Shell的十六进制") into dumpfile'/var/www/html/shell.php'
 ```
 
 但是在我用MySQL 8.0.20的cli客户端尝试的过程中，发现`unhex`输出的始终是原来的十六进制字符串：
