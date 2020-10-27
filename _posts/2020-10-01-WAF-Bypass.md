@@ -119,6 +119,7 @@ POST**大BODY**（WAF可能会为了性能选择性忽略大数据包）
     3. ```sql
         where id=\Nunion select
         ```
+    ![id=8.0union](https://cdn.nlark.com/yuque/0/2020/png/2727264/1603136684724-54629ae2-5dc1-4d0a-8b19-bea7dbaa72d1.png)
 5. 利用**error-based**进行SQL注入（Error-based SQL注入函数非常容易被忽略）
     1. ```sql
         extractvalue(1,concat(0x5c,md5(3)));
