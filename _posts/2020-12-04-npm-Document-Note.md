@@ -2,7 +2,7 @@
 layout:       post
 title:        "npm笔记"
 subtitle:     "部分文档机翻"
-date:         2020-12-04 22:26:54
+date:         2020-12-04 22:24:00
 author:       "NeptLiang"
 header-img:   "img/home-bg.jpg"
 header-mask:  0.3
