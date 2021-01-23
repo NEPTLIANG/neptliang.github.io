@@ -15,7 +15,7 @@ tags:
 
 # 0x00 前言
 
-初到公司不久，可能上司觉得我还太菜，暂时没有分配工作给我，于是我想着先把React文档的核心概念部分康康，复习一下之前在b站学的内容。在这里总结一下重点
+初到公司不久，可能上司觉得我还太菜，暂时没有分配工作给我，于是我想着先把React文档的核心概念部分康康，复习一下之前在b站学的内容。在这里总结一下重点以便日后翻查
 
 ---
 
@@ -86,7 +86,7 @@ ReactDOM.render(
 
 `state`是私有的（局部的，封装的），并且完全受控于当前组件
 
-```js
+```jsx
 class Clock extends React.Component {
     constructor() {
         this.state = {date: new Date()};  //初始化this.state，构造方法中直接给state赋值，其他方法中用setState
@@ -123,12 +123,9 @@ this.setState({
 * 得益于`setState()`的调用，React能够知道`state`已经改变了
 * **不要直接修改State**，否则不会重新渲染组件（**构造方法中直接给`state`赋值，其他方法中用`setState`**）
 
-组件第一次被渲染到DOM中的时候：**挂载（mount）**
-
-组件被删除的时候：**卸载（unmount）**
-
-`componentDidMount()`方法会在组件已经被渲染到DOM中后运行
-
+组件第一次被渲染到DOM中的时候：**挂载（mount）**  
+组件被删除的时候：**卸载（unmount）**  
+`componentDidMount()`方法会在组件已经被渲染到DOM中后运行  
 `componentWillUnmount()`方法会在组件从DOM中被移除时运行
 
 ```js
@@ -171,7 +168,7 @@ class Toggle extends React.Component {
 ```
 
 **阻止默认行为**：
-```js
+```jsx
 function ActionLink() {
     function hadleClick(e) {
         e.preventDefault();  //阻止默认行为
@@ -214,7 +211,7 @@ function Greeting(props) {
 
 **元素变量**：可以使用变量来储存元素
 
-```js
+```jsx
 render() {
     const isLoggedIn = this.state.isLoggedIn;
     let button;
@@ -245,7 +242,7 @@ function Mailbox(props) {
                     <h2>You have {unreadMessages.length} unread messages.</h2>
             }
             {/* 在JavaScript中，true && expression 总是会返回 expression， */}
-            {/*             而 false && expression 总是会返回 false */}
+            {/* ********** 而 false && expression 总是会返回 false */}
         </div>
     );
 }

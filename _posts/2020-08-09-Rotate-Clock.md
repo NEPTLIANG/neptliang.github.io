@@ -7,7 +7,7 @@ author:       "NeptLiang"
 header-img:   "img/home-bg.jpg"
 header-mask:  0.3
 catalog:      true
-multilingual: true
+multilingual: false
 tags:
     - FrontEnd
 ---
