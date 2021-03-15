@@ -10,10 +10,7 @@ catalog:      true
 multilingual: false
 tags:
     - MySQL
-    - Sec
     - WebSec
-    - SQLInject
-    - Bypass
 ---
 
 

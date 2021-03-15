@@ -9,9 +9,7 @@ header-mask:  0.3
 catalog:      true
 multilingual: false
 tags:
-    - Sec
     - WebSec
-    - Bypass
 ---
 
 
