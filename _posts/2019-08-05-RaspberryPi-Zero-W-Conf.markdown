@@ -1,7 +1,7 @@
 ---
 layout:       post
 title:        "Raspberry Pi Zero W USB SSH连接与WiFi配置"
-subtitle:     "Null"
+subtitle:     "迁移自WordPress"
 date:         2019-08-05 18:19:00
 author:       "NeptLiang"
 header-img:   "img/home-bg.jpg"
@@ -17,11 +17,11 @@ tags:
 
 **刷入系统和配置USB SSH根据的是这个教程：**[shumeipai.nxez.com/2018/02/20/raspberry-pi-zero-usb-ethernet-gadget-tutorial.html?variant=zh-cn 【树莓派 Zero USB/以太网方式连接配置教程】](http://shumeipai.nxez.com/2018/02/20/raspberry-pi-zero-usb-ethernet-gadget-tutorial.html?variant=zh-cn)，默认用户名：pi，默认密码：raspberry，默认主机名：raspberrypi.local
 
-原来**数据线和充电线是不一样的**，之前弄了一天，试了三根线，配置改来改去，插电脑就是一点反应都没有，最后换了一根手机数据线，设备管理器里终于出现了（虽然识别成了COM设备）。。。原来是因为我之前用的三根usb线都只是耳机的充电线。。。还有Windows的Linux子系统也有点问题，查了半天看到有位大佬说了才知道**WSL识别不出raspberrypi.local**，可以先用cmd来ping出ip再ssh其ip（出处忘记记了找不到了。。。）
+原来**数据线和充电线是不一样的**，之前弄了一天，试了三根线，配置改来改去，插电脑就是一点反应都没有，最后换了一根手机数据线，设备管理器里终于出现了（虽然识别成了COM设备）。。。原来是因为我之前用的三根usb线都只是耳机的充电线。。。还有Windows的Linux子系统也有点问题，查了半天看到有位大佬说了才知道**WSL识别不出`raspberrypi.local`**，可以先用cmd来ping出ip再ssh其ip（出处忘记记了找不到了。。。）
 # 0x01 WiFi配置
 _//不知道为甚么，我电脑通过usb共享网络给zero却还是上不了网，只好先把wifi配置好_
 
-**使用iwlist扫描周边的无线接入点**，从而检查USB无线网卡是否正常工作（需要root权限）：
+**使用`iwlist`扫描周边的无线接入点**，从而检查USB无线网卡是否正常工作（需要root权限）：
 
 ```shell
 iwlist scan
@@ -37,13 +37,13 @@ iface wlan0 inet dhcp
 wpa-conf /etc/wpa.conf
 ```
 
-_/*提示：在树莓派上的无线网卡如果是第一个网卡，则名称通常是wlan0，否则最后的数字可能有所不同。使用iwconfig可以查看所有无线网卡，并根据给出的无线网卡信息调整上例中的输入文字_
+_/*提示：在树莓派上的无线网卡如果是第一个网卡，则名称通常是`wlan0`，否则最后的数字可能有所不同。使用`iwconfig`可以查看所有无线网卡，并根据给出的无线网卡信息调整上例中的输入文字_
 
 _上述interfaces文件的最后一行指向配置文件wpa.conf，该文件目前尚不存在。该文件是被wpasupplicant这一Linux下的专用无线网络安全工具所使用的。该工具向Linux提供了一种简单的方式来使用WPA（Wireless Protected Access）加密标准安全接入网络。使用wpasupplicant，你可以让树莓派接入几乎所有的无线网络，不管无线网络是使用WPA还是WPA2也无论是使用AES或TKIP模式，你还可以接入早期使用WEP加密的网络（尽管该工具以wpa开头）。*/_
 
-wpasupplicant创建的wpa.conf文件存放在/etc目录下，配置树莓派的无线接入前，我们**首先新建一个空白文件/etc/wpa.conf（需要root权限），然后输入以下两行，注意替换其中的Your_SSID为无线网络中你实际上要连接的路由器SSID，要加双引号：**
+wpasupplicant创建的wpa.conf文件存放在/etc目录下，配置树莓派的无线接入前，我们**首先新建一个空白文件/etc/wpa.conf（需要root权限），然后输入以下两行，注意替换其中的`Your_SSID`为无线网络中你实际上要连接的路由器SSID，要加双引号：**
 
-```
+```conf
 network={
     ssid="Your_SSID"
 ```
@@ -52,14 +52,14 @@ network={
 
 (1) 无线网络**不加密时**，再加入下述两行并保存：
 
-```
+```conf
     key_mgmt=NONE
 }
 ```
 
-(2) 无线网络**使用WEP加密时**，再加入如下几行并保存（请注意将下面的Your_WEP_Key替换成你自己的无线网络WEP加密的ASCII密钥）：
+(2) 无线网络**使用WEP加密时**，再加入如下几行并保存（请注意将下面的`Your_WEP_Key`替换成你自己的无线网络WEP加密的ASCII密钥）：
 
-```
+```conf
     key_mgmt=NONE
     wep_key0="Your_WEP_Key"
 }
@@ -67,9 +67,9 @@ network={
 
 _//提示：WEP加密不安全，易遭破解，不建议使用_
 
-(3) 无线网络**使用WPA/WPA2加密时**，再加入如下几行并保存（WPA2也是写WPA-PSK而不是WPA2-PSK；注意将下面的Your_WPA_Key替换成你自己所在的网络的密码短语口令，要加双引号）：
+(3) 无线网络**使用WPA/WPA2加密时**，再加入如下几行并保存（WPA2也是写`WPA-PSK`而不是WPA2-PSK；注意将下面的`Your_WPA_Key`替换成你自己所在的网络的密码短语口令，要加双引号）：
 
-```
+```conf
     key_mgmt=WPA-PSK
     psk="Your_WPA_Key"
 }
