@@ -68,7 +68,7 @@ A start job is running for livemedia mhwd scripe(xxxx)
 
 断开网络即可
 
-*//来源：[https://www.manjaro.cn/bbs/topic/%E5%AE%89%E8%A3%85%E5%8D%A1%E5%9C%A893%E4%B8%8D%E5%8A%A8%E4%BA%86](https://www.manjaro.cn/bbs/topic/%E5%AE%89%E8%A3%85%E5%8D%A1%E5%9C%A893%E4%B8%8D%E5%8A%A8%E4%BA%86)【主题：安装卡在93%不动了 | Manjaro Linux 乐于简单】@rainweic*
+*//来源：[https://www.manjaro.cn/bbs/topic/%E5%AE%89%E8%A3%85%E5%8D%A1%E5%9C%A893%E4%B8%8D%E5%8A%A8%E4%BA%86](https://www.manjaro.cn/bbs/topic/%E5%AE%89%E8%A3%85%E5%8D%A1%E5%9C%A893%E4%B8%8D%E5%8A%A8%E4%BA%86)【主题：安装卡在93%不动了  Manjaro Linux 乐于简单】@rainweic*
  
 # 0x04 更新软件源提示“无法升级 core (无法锁定数据库)”
 
