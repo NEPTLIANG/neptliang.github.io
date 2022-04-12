@@ -641,6 +641,478 @@ m.clear();
 console.log('cleared:', m);
 ```
 
+---
+
+
+# `0x0C` 类
+
+类的**ES5**实现：
+
+```js
+// 父类声明与属性、方法配置
+function Human(height, weight) {
+	this.height = height;
+	this.weight = weight;
+}
+// 静态属性
+Human.number = '1.4 billion';
+// 静态方法
+Human.unite = () => console.log('Proletarians of the world, unite!');
+// 实例属性
+Human.prototype.hometown = 'earth';
+// 实例方法
+Human.prototype.eat = () => console.log('A man is eating...');
+
+// 子类声明
+function Student(height, weight, school, classroom) {
+	// 调用父类的构造方法，通过call方法传递this
+	Human.call(this, height, weight);
+	this.school = school;
+	this.classroom = classroom;
+}
+// 设置原型
+Student.prototype = new Human;
+
+Student.number = '260 million';
+Student.increase = () => console.log('Schools are expanding and the number of students is increasing...');
+Student.prototype.task = 'Study';
+Student.prototype.study = () => console.log('A student is studying...');
+
+// 实例化
+const teacherWong = new Human(180, 65);  
+teacherWong.workNumber = '39473';
+teacherWong.afterWork = () => console.log('Miss Wong has gone off work');
+const xiaoMing = new Student(170, 60, 'LNU', 'CS1');
+xiaoMing.studentId = '2017654321';
+xiaoMing.classIsOver = () => console.log("Xiaoming's class is over");
+
+// 父类测试
+console.log({ Human });
+console.log({
+	'Human.number': Human.number,
+	'Human.hometown': Human.hometown
+});  	// { Human.number: '1.4 billion', Human.hometown: undefined }
+Human.unite();  	//Proletarians of the world, unite!
+Human.eat?.();
+console.log({ teacherWong });  	// { teacherWong: Human { height: 180, weight: 65, workNumber: '39473', afterWork: ƒ } }
+console.log({
+	'teacherWong.number': teacherWong.number,
+	'teacherWong.hometown': teacherWong.hometown
+});  	// { teacherWong.number: undefined, teacherWong.hometown: 'earth' }
+teacherWong.unite?.();
+teacherWong.eat();  	//A man is eating...
+teacherWong.afterWork();  	//Miss Wong has gone off work
+
+// 子类测试
+console.log({ Student });
+console.log({
+	'Student.number': Student.number,
+	'Student.task': Student.task
+});  	// { Student.number: '260 million', Student.task: undefined }
+Student.increase();  	//Schools are expanding and the number of students is increasing...
+Student.study?.();
+console.log({ xiaoMing });  	// { xiaoMing: Student {height: 170, weight: 60, school: 'LNU', classroom: 'CS1', studentId: '2017654321', classIsOver: ƒ } }	
+console.log({
+	'xiaoMing.number': xiaoMing.number,
+	'xiaoMing.task': xiaoMing.task
+})  	// { xiaoMing.number: undefined, xiaoMing.task: 'Study' }
+xiaoMing.increase?.();
+xiaoMing.study();  	//A student is studying...
+xiaoMing.classIsOver();  	//Xiaoming's class is over
+```
+
+类的ES6实现：
+```js
+// 父类
+class Human {
+	// 静态属性
+	static number = '1.4 billion';
+	// 实例属性
+	hometown = 'earth';
+
+	constructor(height, weight) {
+		this.height = height;
+		this.weight = weight;
+	}
+
+	// 静态方法
+	static unite() {
+		console.log('Proletarians of the world, unite!');
+	}
+
+	// 实例方法
+	eat() {
+		console.log('A man is eating...');
+	}
+}
+
+// 子类
+class Student extends Human {
+	static number = '260 million';
+	task = 'Study';
+
+	constructor(height, weight, school, classroom) {
+		// 调用父类的构造方法
+		super(height, weight);
+		this.school = school;
+		this.classroom = classroom;
+	}
+
+	static increase() {
+		console.log('Schools are expanding and the number of students is increasing...');
+	}
+
+	// 可重写父类同名方法
+	eat() {
+		console.log('A student is eating...');
+	}
+
+	study() {
+		// super();  	//Uncaught SyntaxError, 构造函数需调用父类的构造方法，但是成员方法不允许调用
+		console.log('A student is studying...');
+	}
+}
+
+// 实例化
+const teacherWong = new Human(180, 65);  
+teacherWong.workNumber = '39473';
+teacherWong.afterWork = () => console.log('Miss Wong has gone off work');
+const xiaoMing = new Student(170, 60, 'LNU', 'CS1');
+xiaoMing.studentId = '2017654321';
+xiaoMing.classIsOver = () => console.log("Xiaoming's class is over");
+
+// 父类测试
+console.log({ Human })
+console.log({
+	'Human.number': Human.number,
+	'Human.hometown': Human.hometown
+});  	// { Human.number: '1.4 billion', Human.hometown: undefined }
+Human.unite();  	//Proletarians of the world, unite!
+Human.eat?.();
+console.log({ teacherWong });  	// { teacherWong: Human { hometown: 'earth', height: 180, weight: 65, workNumber: '39473', afterWork: ƒ } }
+console.log({
+	'teacherWong.number': teacherWong.number,
+	'teacherWong.hometown': teacherWong.hometown
+});  	// { teacherWong.number: undefined, teacherWong.hometown: 'earth' }
+teacherWong.unite?.();
+teacherWong.eat();  	//A man is eating...
+teacherWong.afterWork();  	//Miss Wong has gone off work
+
+// 子类测试
+console.log({ Student })
+console.log({
+	'Student.number': Student.number,
+	'Student.task': Student.task
+});  	// { Student.number: '260 million', Student.task: undefined }
+Student.increase();  	//Schools are expanding and the number of students is increasing...
+Student.study?.();
+console.log({ xiaoMing });  	// { xiaoMing: Student { hometown: 'earth', height: 170, weight: 60, task: 'Study', school: 'LNU', classroom: 'CS1', studentId: '2017654321', classIsOver: ƒ } }	
+console.log({
+	'xiaoMing.number': xiaoMing.number,
+	'xiaoMing.task': xiaoMing.task
+})  	// { xiaoMing.number: undefined, xiaoMing.task: 'Study' }
+xiaoMing.increase?.();
+xiaoMing.study();  	//A student is studying...
+xiaoMing.eat();  	//A student is eating...
+xiaoMing.classIsOver();  	//Xiaoming's class is over
+```
+
+`get`与`set`：
+
+```js
+class Student {
+	t = 'Study'
+
+	// get
+	get task() {
+		console.log('task属性被读取');
+		return this.t;
+	}
+
+	// set
+	set task(task) {  	//必须有形参否则报错
+		this.t = task;
+		console.log('task属性被修改');
+	}
+}
+const xiaoMing = new Student();
+
+// 获取getter值
+console.log('gotten:', xiaoMing.task);  	//gotten: Study
+
+console.log('Before the set value:', xiaoMing.t);  	//Before the set value: Study
+// 给setter赋值
+xiaoMing.task = 'Sleep';
+console.log('After the value is set:', xiaoMing.t);  	//After the value is set: Sleep
+```
+
+---
+
+
+# 0x0D 数值的扩展
+
+1. `Number.EPSILON`：JavaScript表示的最小精度
+
+	```js
+	const floatEqual = (a, b) => Math.abs(a - b) < Number.EPSILON;
+
+	console.log(0.1 + 0.2 === 0.3);  	//false
+	console.log(floatEqual(0.1 + 0.2, 0.3));  	//true
+	```
+
+2. 二进制、八进制、十六进制
+
+	```js
+	const bin = 0b1010;
+	const oct = 0o77;
+	const dec = 99;
+	const hex = 0xff;
+
+	console.log({ bin, oct, dec, hex });  	// { bin: 10, oct: 63, dec: 99, hex: 255 }
+	```
+
+3. `Number.isFinite`: 判断数值是否为有限数
+
+	```js
+	console.log({
+		100: Number.isFinite(100),
+		'100/0': Number.isFinite(100 / 0),
+		'Infinity': Number.isFinite(Infinity)
+	});  	// { 100: true, 100/0: false, Infinity: false }
+	```
+
+4. `Number.isNaN`（判断是否为NaN）：原为全局函数，现添加为`Number`的方法
+
+	```js
+	console.log({
+		'undefined+1': Number.isNaN(undefined + 1),
+		'123+1': Number.isNaN(123 + 1)
+	});  	// { undefined+1: true, 123+1: false }
+	```
+
+5. `Number.parseInt`、`Number.parseFloat`：原为全局函数，现添加为`Number`的方法
+
+	```js
+	console.log([
+		Number.parseInt('111aaa'),
+		Number.parseFloat('111.111aaa')
+	]);  	// [ 111, 111.111 ]
+	```
+
+6. `Number.isInteger`: 判断是否为整数
+
+	```js
+	console.log({
+		2: 		Number.isInteger(2),
+		'2.0': 	Number.isInteger(2.0),
+		2.5: 	Number.isInteger(2.5)
+	});  	// { 2: true, 2.0: true, 2.5: false }
+	```
+
+7. `Math.trunc`: 截掉数值的小数部分
+
+	```js
+	console.log({
+		3.1: Math.trunc(3.1),
+		3.9: Math.trunc(3.9),
+		'-3.1': Math.trunc(-3.1),
+		//Math.floor是向负无穷方向取整，trunc是直接抹掉小数部分
+		'-3.9': Math.trunc(-3.9),
+		'Math.floor(-3.9)': Math.floor(-3.9),  	
+		'-0.9': Math.trunc(-0.9),
+		Infinity: Math.trunc(Infinity),
+		//对于非数值，Math.trunc内部先使用Number方法将其转为数值
+		"'3.9'": Math.trunc('3.9'),  	
+		'3.9aaa': Math.trunc('3.9aaa'),
+		'true': Math.trunc(true),
+		'false': Math.trunc(false),
+		'': Math.trunc(''),
+		'null': Math.trunc(null),
+		//对于空值和无法截取整数的值，返回NaN
+		'NaN': Math.trunc(NaN),
+		'undefined': Math.trunc(undefined),
+		'()': Math.trunc(),
+		'aaa': Math.trunc('aaa')
+	});  	// {3.1: 3, 3.9: 3, -3.1: -3, -3.9: -3, Math.floor(-3.9): -4, -0.9: -0, Infinity: Infinity, '3.9': 3, 3.9aaa: NaN, true: 1, false: 0, "": 0, null: 0, NaN: NaN, undefined: NaN, (): NaN, aaa: NaN }
+	```
+
+8. `Math.sign`: 判断一个数是正数、负数还是零
+
+	```js
+	console.log({
+		100: Math.sign(100),
+		0: Math.sign(0),
+		'-20000': Math.sign(-20000)
+	});  	// { 0: 0, 100: 1, -20000: -1 }
+	```
+
+---
+
+
+# `0x0E` 对象方法扩展
+
+1. `Object.is`: 判断两个值是否完全相等
+
+	```js
+	console.log([
+		Object.is(NaN, NaN),
+		NaN === NaN
+	]);  	// [ true, false ]
+	```
+
+2. `Object.assign`: 对象的合并，将源对象的所有可枚举属性，复制到目标对象
+
+	```js
+	const target = {
+		host: 'localhost',
+		name: 'root'
+	};
+
+	const source1 = {
+		name: 'user',
+		pwd: 'password'
+	};
+
+	const source2 = {
+		pwd: 'password2',
+		port: 3306
+	}
+
+	console.log(
+		Object.assign(target, source1, source2)
+	);  	// { host: 'localhost', name: 'user', pwd: 'password2', port: 3306 }
+	console.log(target);  	// { host: 'localhost', name: 'user', pwd: 'password2', port: 3306 }
+	```
+
+3. `Object.setPrototypeOf`: 设置原型对象
+
+	`Object.getPrototypeOf`: 读取原型对象
+	
+	```js
+	const a = { b: 'c' };
+	const d = { e: 'f' };
+
+	console.log(Object.getPrototypeOf(a));  	// { constructor: ƒ, __defineGetter__: ƒ, __defineSetter__: ƒ, hasOwnProperty: ƒ, __lookupGetter__: ƒ, … }
+	Object.setPrototypeOf(a, d);
+	console.log(Object.getPrototypeOf(a));  	// { e: 'f' }
+	console.log(a);  	// { b: 'c' }
+	```
+
+---
+
+
+# `0x0F` ES6 module
+
+默认暴露：
+
+* export.js:
+
+	```js
+	export default {  	//默认暴露
+		school: 'LNU',
+		teach: () => console.log('Teaching activities are in progress')
+	}
+	```
+
+* import.js: 
+
+	```js
+	import * as m1 from './export.js'
+
+	console.log(m1);  	// { default: { school: "LNU", teach: () => console.log('Teaching activities are in progress') } }
+	//默认暴露出的内容挂在default属性下
+	m1.default.teach();  	//Teaching activities are in progress
+	```
+
+**注意**：不能直接`import { default }`，但是起个别名之后可以
+
+* import2.js:
+
+	```js
+	// import { default } from './export.js'      //SyntaxError: Unexpected reserved word，不能直接解构取default
+	import { default as m1 } from './export.js'    //给default起个别名后可以import
+
+	console.log(m1);    // { school: 'LNU', teach: [Function: teach] }
+	```
+
+打包：
+
+```sh
+# 安装工具
+npm i babel-cli babel-preset-env browserify
+npx babel src/js -d dist/js --presets-babel-preset-env  	# --presets-babel-preset-env一般在babelrc里配置
+# 打包
+npx browserify dist/js/demo.js -o dist/bundle.js
+```
+
+---
+
+
+# `0x10` ES7特性
+
+## 1. `Array.prototype.includes`
+
+## 2. 指数操作符
+
+ES7中引入指数运算符（`**`），用来实现幂运算，功能与`Math.pow`相同
+
+---
+
+
+# `0x11` ES8特性
+
+## 1. `async`和`await`
+
+注意：
+
+1. `async`函数的**返回值为`promise`对象**
+2. `promise`对象的结果由**`async`函数执行的返回值**决定
+3. `await`右侧的表达式**一般返回`promise`对象**
+4. `await`表达式返回的是**`promise`成功的值**
+5. `await`的`promise`失败了，就会**抛出异常**，需要通过try...catch捕获处理
+
+不同情况下的`async`函数返回值：
+
+```js
+// 返回字符串
+const string = async () => 'test';
+// 抛出错误，则返回的是失败的Promise
+const fnThrowedErr = async () => {
+	throw new Error('出错了');
+	return '没出错';
+}
+// return的结果不是Promise类型的对象，则接收到的返回结果是成功的Promise对象
+const nonPromise = async () => {};
+// 返回的结果是Promise对象，则其状态取决于返回的Promise对象的状态
+const resolvedPromise = async () => new Promise((resolve, reject) => resolve('resolved'));
+const rejectedPromise = async () => new Promise((resolve, reject) => reject('rejected'));
+
+// Promise.allSettled([
+// 	string(), 
+// 	fnThrowedErr(), 
+// 	nonPromise(), 
+// 	resolvedPromise(), 
+// 	rejectedPromise()
+// ])
+// 	.then(result => console.log(result))  	// [{ status: 'fulfilled', value: 'test' }, { status: 'rejected', reason: Error: 出错了 at fnThrowedErr (<anonymous>:5:8) at <anonymous>:18:2 }, { status: 'fulfilled', value: undefined }, { status: 'fulfilled', value: 'resolved' }, { status: 'rejected', reason: 'rejected' }]
+// 	.catch(e => console.warn(e));
+string()
+	.then(result => console.log(result))  	//test
+	.catch(e => console.warn(e));
+fnThrowedErr()
+	.then(result => console.log(result))
+	.catch(e => console.warn(e));  	//Error: 出错了
+nonPromise()
+	.then(result => console.log(result))
+	.catch(e => console.warn(e));
+resolvedPromise()
+	.then(result => console.log(result))  	//resolved
+	.catch(e => console.warn(e));
+rejectedPromise()
+	.then(result => console.log(result))
+	.catch(e => console.warn(e));  	//rejected
+```
+
 
 ---
 
