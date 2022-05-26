@@ -875,8 +875,8 @@ console.log('After the value is set:', xiaoMing.t);  	//After the value is set: 
 
 	```js
 	console.log({
-		100: Number.isFinite(100),
-		'100/0': Number.isFinite(100 / 0),
+		100: 		Number.isFinite(100),
+		'100/0': 	Number.isFinite(100 / 0),
 		'Infinity': Number.isFinite(Infinity)
 	});  	// { 100: true, 100/0: false, Infinity: false }
 	```
@@ -885,8 +885,8 @@ console.log('After the value is set:', xiaoMing.t);  	//After the value is set: 
 
 	```js
 	console.log({
-		'undefined+1': Number.isNaN(undefined + 1),
-		'123+1': Number.isNaN(123 + 1)
+		'undefined+1': 	Number.isNaN(undefined + 1),
+		'123+1': 		Number.isNaN(123 + 1)
 	});  	// { undefined+1: true, 123+1: false }
 	```
 
@@ -913,26 +913,26 @@ console.log('After the value is set:', xiaoMing.t);  	//After the value is set: 
 
 	```js
 	console.log({
-		3.1: Math.trunc(3.1),
-		3.9: Math.trunc(3.9),
+		3.1: 	Math.trunc(3.1),
+		3.9: 	Math.trunc(3.9),
 		'-3.1': Math.trunc(-3.1),
 		//Math.floor是向负无穷方向取整，trunc是直接抹掉小数部分
 		'-3.9': Math.trunc(-3.9),
 		'Math.floor(-3.9)': Math.floor(-3.9),  	
-		'-0.9': Math.trunc(-0.9),
-		Infinity: Math.trunc(Infinity),
+		'-0.9': 	Math.trunc(-0.9),
+		Infinity: 	Math.trunc(Infinity),
 		//对于非数值，Math.trunc内部先使用Number方法将其转为数值
-		"'3.9'": Math.trunc('3.9'),  	
-		'3.9aaa': Math.trunc('3.9aaa'),
-		'true': Math.trunc(true),
-		'false': Math.trunc(false),
-		'': Math.trunc(''),
-		'null': Math.trunc(null),
+		"'3.9'": 	Math.trunc('3.9'),  	
+		'3.9aaa': 	Math.trunc('3.9aaa'),
+		'true': 	Math.trunc(true),
+		'false': 	Math.trunc(false),
+		'': 		Math.trunc(''),
+		'null': 	Math.trunc(null),
 		//对于空值和无法截取整数的值，返回NaN
-		'NaN': Math.trunc(NaN),
+		'NaN': 		Math.trunc(NaN),
 		'undefined': Math.trunc(undefined),
-		'()': Math.trunc(),
-		'aaa': Math.trunc('aaa')
+		'()': 		Math.trunc(),
+		'aaa': 		Math.trunc('aaa')
 	});  	// {3.1: 3, 3.9: 3, -3.1: -3, -3.9: -3, Math.floor(-3.9): -4, -0.9: -0, Infinity: Infinity, '3.9': 3, 3.9aaa: NaN, true: 1, false: 0, "": 0, null: 0, NaN: NaN, undefined: NaN, (): NaN, aaa: NaN }
 	```
 
@@ -940,8 +940,8 @@ console.log('After the value is set:', xiaoMing.t);  	//After the value is set: 
 
 	```js
 	console.log({
-		100: Math.sign(100),
-		0: Math.sign(0),
+		100: 	Math.sign(100),
+		0: 		Math.sign(0),
 		'-20000': Math.sign(-20000)
 	});  	// { 0: 0, 100: 1, -20000: -1 }
 	```
@@ -1071,6 +1071,26 @@ ES7中引入指数运算符（`**`），用来实现幂运算，功能与`Math.p
 4. `await`表达式返回的是**`promise`成功的值**
 5. `await`的`promise`失败了，就会**抛出异常**，需要通过try...catch捕获处理
 
+示例：
+
+```js
+const p = new Promise((resolve, reject) => {
+	// resolve('resolved');
+	reject('rejected');
+});
+
+const asyncFn = async () => {
+	try {
+		const result = await p;  	//await右侧的表达式一般返回promise对象
+		console.log(result);  	//await表达式返回的是promise成功的值
+	} catch (e) {
+		console.warn(e);  	//await的promise失败了，就会抛出异常，需要通过try...catch捕获处理
+	}
+};
+
+console.log({ returned: asyncFn() });  	//async函数的返回值为promise对象
+```
+
 不同情况下的`async`函数返回值：
 
 ```js
@@ -1111,6 +1131,325 @@ resolvedPromise()
 rejectedPromise()
 	.then(result => console.log(result))
 	.catch(e => console.warn(e));  	//rejected
+```
+
+async-await实例：异步读取文件
+
+```js
+import fs from 'fs'
+
+const readFile1 = () => new Promise((resolve, reject) => fs.readFile('./res/file1.txt', (err, data) => {
+	if (err) { reject({ err1: err}); }
+	else { resolve(data.toString()); }
+}));
+	
+const readFile2 = () => new Promise((resolve, reject) => fs.readFile('./res/file2.txt', (err, data) => {
+	if (err) { reject({ err2: e}); }
+	else { resolve(data.toString()); }
+}));
+
+const readFile3 = () => new Promise((resolve, reject) => fs.readFile('./res/file3.txt', (err, data) => {
+	if (err) { reject({ err3: e }); }
+	else { resolve(data.toString()); }
+}));
+
+const asyncReadAllFile = async () => {
+	const data1 = await readFile1();
+	const data2 = await readFile2();
+	const data3 = await readFile3();
+	console.log({ data1, data2, data3 });
+};
+
+asyncReadAllFile();  	// { data1: 'Content of file 1', data2: 'Content of file 2', data3: 'Content of file 3' }
+```
+
+实例2：AJAX异步请求接口
+
+```js
+const getData = data => new Promise((resolve, reject) => {
+	const req = new XMLHttpRequest();
+	req.onreadystatechange = () => {
+		if (req.readyState === 4) {
+			if ((req.status >= 200 && req.status < 300) || req.status === 304) {
+				resolve(`resolved: ${req.response}`);
+			} else {
+				reject(`rejected: ${req.status}`);
+			}
+		}
+	}
+	req.open('get', 'https://api.github.com/users/neptliang', true);
+	req.send(data);
+})
+
+const test = async () => {
+	try {
+		const result = await getData();
+		console.log(result);
+	} catch (err) {
+		console.warn(err);
+	}
+};
+
+test();
+```
+
+## 2. 对象方法扩展
+
+1. `Object.values`：	返回一个给定对象所有可枚举属性**值**的数组
+2. `Object.entires`：	返回一个给定对象自身可遍历属性**键值对**[key, value]的数组
+3. `Object.getOwnPropertyDescriptors`：返回指定对象所有自身属性的描述对象，**用于通过`Object.create`克隆对象**
+
+```js
+const obj = {
+	key1: 'val1',
+	key2: [ 'val2_1', 'val2_2' ],
+	key3: [ 'val3_1', 'val3_3', 'val3_3' ]
+};
+
+console.log({
+	'Obejct.keys': Object.keys(obj),
+	'Object.values': Object.values(obj),
+	'Objcet.entries': Object.entries(obj),
+	'Object.getOwnPropertiesDescriptors': Object.getOwnPropertyDescriptors(obj)
+});
+
+//通过对象创建Map
+const map = new Map(Object.entries(obj));  	
+
+console.log({
+	'new Map(Object.entries(obj))': map,  	
+	'map.get(\'key1\')': 			map.get('key1')
+});
+
+const unrestricted = Object.create(null, {  	//第一个参数为原型对象
+	name: {  	//属性的名
+		value: 'val1',  	//属性的值
+		// 属性的特性
+		writable: true,
+		configurable: true,  	//可配置（即可删除）
+		enumerable: true
+	}
+});
+
+unrestricted.name = 2;
+console.log(unrestricted);
+delete unrestricted.name;
+console.log(unrestricted);
+
+const restricted = Object.create(null, {
+	name: {
+		value: 'val1',
+		writable: false,
+		configurable: false,
+		enumerable: false
+	}
+});
+
+restricted.name = 2;
+console.log(restricted);
+delete restricted.name;
+console.log(restricted);
+
+// 通过Object.getOwnPropertyDescriptors与Object.create克隆对象
+const obj3 = Object.create(null, Object.getOwnPropertyDescriptors(restricted));  	
+
+console.log(obj3);
+obj3.name = 2
+console.log(obj3);
+```
+
+---
+
+
+# `0x12` ES9特性
+
+## 1. 对象展开
+
+Rest参数与spread扩展运算符在ES6中已经引入，不过在ES6中只针对于**数组**，在ES9中为**对象**提供了像数组一样的Rest参数和扩展运算符
+
+```js
+const connect = ({ host, port, ...user }) => {
+	console.log(host);  	// 127.0.0.1
+	console.log(port);  	// 3306
+	console.log(user);  	// { username: 'root', password: 'toor' }
+}
+
+connect({
+	host: '127.0.0.1',
+	port: 3306,
+	username: 'root',
+	password: 'toor'
+});
+```
+
+## 2. 正则扩展
+
+1. 命名捕获分组
+
+非命名捕获分组：`(正则模式)`，捕获到的结果存储在返回**数组**中的完整结果之后（`groups`属性值为`undefined`）
+
+```js
+const str = '<a href="https://github.com">GitHub</a>'
+
+const reg = /<a href="(.*)">(.*)<\/a>/;
+const result = reg.exec(str);
+
+console.log(result);  	// [ '<a href="https://github.com">GitHub</a>', 'https://github.com', 'GitHub', index: 0, input: '<a href="https://github.com">GitHub</a>', groups: undefined ]
+```
+
+命名捕获分组：`(?<命名>正则模式)`，结果以**键值对**形式储存在返回值的**`groups`属性**中（也可以通过上述默认捕获分组的形式用索引访问分组匹配结果元素）
+
+```js
+const str = '<a href="https://github.com">GitHub</a>';
+const reg = /<a href="(?<name1>.*)">(?<name2>.*)<\/a>/;
+
+const result = reg.exec(str);
+
+console.log(result);  	// [ '<a href="https://github.com">GitHub</a>', 'https://github.com', 'GitHub', index: 0, input: '<a href="https://github.com">GitHub</a>', groups: { name1: 'https://github.com', name2: 'GitHub' } ]
+```
+
+2. 断言
+
+正向断言：`模式1(?=模式2)`，只有**后面**的内容符合某种模式，才匹配上**前面**的内容（后面符合才匹配前面）
+
+反向断言：`(?<=模式1)模式2`，只有**前面**的内容符合某种模式，才匹配上**后面**的内容（前面符合才匹配后面）
+
+```js
+const str = 'abcd114514就是逊啦233333333我超勇的';  	
+
+let reg = /\d+/;  	
+console.log(reg.exec(str));  	// [ '114514', index: 4, input: 'abcd114514就是逊啦233333333我超勇的', groups: undefined ]
+
+// 正向断言
+reg = /\d+(?=我)/;  	//只有后面符合/我/的时候才匹配上前面的/\d+/
+let result = reg.exec(str);
+
+console.log(result);  	// [ '233333333', index: 14, input: 'abcd114514就是逊啦233333333我超勇的', groups: undefined ]
+
+// 反向断言
+reg = /(?<=逊啦)\d+/;  	//只有前面符合/逊啦/的时候才匹配上后面的/\d+/
+result = reg.exec(str);
+
+console.log(result);  	// [ '233333333', index: 14, input: 'abcd114514就是逊啦233333333我超勇的', groups: undefined ]
+```
+
+3. dotAll模式
+
+"dot"指“`.`”元字符，匹配**除换行符以外**的任意单个字符
+
+而**dotAll模式（`/模式/s`）让`.`也能匹配换行符**
+
+```js
+const str = `
+	<ul>
+		<li>
+			<a>肖申克的救赎</a>
+			<p>上映日期：1994-09-10</p>
+		</li>
+		<li>
+			<a>阿甘正传</a>
+			<p>上映日期：1994-07-06</p>
+		</li>
+	</ul>
+`;
+
+let reg = /<li>\s+<a>(.*?)<\/a>\s+<p>(.*?)<\/p>/;  	//一般是采用\s来匹配换行符和tab等空白符
+console.log(reg.exec(str));  	// [ '<li>\n\t\t\t<a>肖申克的救赎</a>\n\t\t\t<p>上映日期：1994-09-10</p>', '肖申克的救赎', '上映日期：1994-09-10', index: 9, input: '\n\t<ul>\n\t\t<li>\n\t\t\t<a>肖申克的救赎</a>\n\t\t\t<p>上映日期：1994-09-…甘正传</p>\n\t\t\t<p>上映日期：1994-07-06</p>\n\t\t</li>\n\t</ul>\n', groups: undefined ]
+reg = /<li>.*?<a>(.*?)<\/a>.*?<p>(.*?)<\/p>/;  	//直接使用“.”会匹配不到换行符
+console.log(reg.exec(str));  	//null
+
+reg = /<li>.*?<a>(.*?)<\/a>.*?<p>(.*?)<\/p>/s;  	//设置dotAll模式后“.”可以匹配换行符了
+let result = reg.exec(str);
+
+console.log(result);  	// [ '<li>\n\t\t\t<a>肖申克的救赎</a>\n\t\t\t<p>上映日期：1994-09-10</p>', '肖申克的救赎', '上映日期：1994-09-10', index: 9, input: '\n\t<ul>\n\t\t<li>\n\t\t\t<a>肖申克的救赎</a>\n\t\t\t<p>上映日期：1994-09-…甘正传</p>\n\t\t\t<p>上映日期：1994-07-06</p>\n\t\t</li>\n\t</ul>\n', groups: undefined ]
+
+reg = /<li>.*?<a>(.*?)<\/a>.*?<p>(.*?)<\/p>/gs;
+while (result = reg.exec(str)) {
+	console.log({ while: result });
+}
+```
+
+---
+
+
+# `0x13` ES10特性
+
+## `Object.fromEntries`
+
+1. 通过二维数组创建对象
+
+	```js
+	// 通过二维数组创建对象
+	const result = Object.fromEntries([
+		[ 'name', 		'lnu' ],
+		[ 'coureses', 	'c', 'java', 'frontend' ]
+	]);
+
+	console.log(result);  	// { name: 'lnu', coureses: 'c' }
+
+	// Object.entries与Object.fromEntries互为逆运算
+	const arr = Object.entries(result);
+
+	console.log(arr);  	// [ ['name', 'lnu'], ['coureses', 'c'] ]
+	```
+
+2. 通过`Map`对象创建对象
+
+	```js
+	const map = new Map();
+	map.set('name', 'lnu');
+
+	const result = Object.fromEntries(map);  	//通过Map对象创建对象
+
+	console.log(result);  	// { name: 'lnu' }
+	```
+
+## `trimStart`与`trimEnd`
+
+分别裁掉字符串开头与结尾的空格
+
+```js
+let str = '     aaaaa     ';
+
+//分别裁掉字符串开头与结尾的空格
+let trimStart = str.trimStart();
+let trimEnd = str.trimEnd();
+
+console.log({ str, trimStart, trimEnd });  	// { str: '     aaaaa     ', trimStart: 'aaaaa     ', trimEnd: '     aaaaa' }
+
+str = '	aaaaa	';
+console.log({
+	str,
+	trimStart: 	str.trimStart(),
+	startLen: 	str.trimStart().length,
+	trimEnd: 	str.trimEnd(),
+	endLen: 	str.trimEnd().length
+});  	// { str: '\taaaaa\t', trimStart: 'aaaaa\t', startLen: 6, trimEnd: '\taaaaa', endLen: 6 }
+
+str = `
+	aaaaa
+`;
+console.log({
+	str,
+	trimStart: 	str.trimStart(),
+	startLen: 	str.trimStart().length,
+	trimEnd: 	str.trimEnd(),
+	endLen: 	str.trimEnd().length
+});  	// { str: '\n\taaaaa\n', trimStart: 'aaaaa\n', startLen: 6, trimEnd: '\n\taaaaa', endLen: 7 }
+```
+
+## `flat`与`flatMap`
+
+将高维数组降维为低维数组
+
+* `flat`: 
+
+```js
+const arr = [ 1, 2, [ 3, 4, [5, 6, 7], 8, 9 ], 0 ];
+
+const result = arr.flat();
+
+console.log(result);  	// [ 1, 2, 3, 4, [ 5, 6, 7 ], 8, 9, 0 ]
 ```
 
 

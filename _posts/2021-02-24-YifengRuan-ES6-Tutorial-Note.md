@@ -144,7 +144,7 @@ tags:
 
 * 顶层对象，在**浏览器环境**指的是`window`对象，在**Node**指的是`global`对象。ES5之中，顶层对象的属性与全局变量是等价的。
 
-    顶层对象的属性与全局变量挂钩，被认为是JavaScript语言最大的设计败笔之一。这样的设计带来了几个很大的问题，
+    * 顶层对象的属性与全局变量挂钩，被认为是JavaScript语言最大的设计败笔之一。这样的设计带来了几个很大的问题，
         
         首先是没法在编译时就报出变量未声明的错误，只有运行时才能知道（因为全局变量可能是顶层对象的属性创造的，而属性的创造是动态的）；
         
@@ -164,9 +164,9 @@ tags:
 
 * JavaScript语言存在一个顶层对象，它提供全局环境（即全局作用域），所有代码都是在这个环境中运行。但是，顶层对象在各种实现里面是不统一的。
 
-    * 浏览器里面，顶层对象是`window`，但Node和Web Worker没有`window`。
-    * 浏览器和Web Worker里面，`self`也指向顶层对象，但是 Node没有`self`。
-    * Node里面，顶层对象是`global`，但其他环境都不支持。
+    * **浏览器**里面，顶层对象是`window`，但Node和Web Worker没有`window`。
+    * **浏览器和`Web Worker`里面**，`self`也指向顶层对象，但是 Node没有`self`。
+    * **Node**里面，顶层对象是`global`，但其他环境都不支持。
 
     环境        |   `window`  | `self`     |`global`
     ------------|:----------:|:-----------:|:----:
@@ -176,10 +176,10 @@ tags:
 
 * 同一段代码为了能够在各种环境，都能取到顶层对象，现在一般是使用`this`变量，但是有局限性。
 
-    * 全局环境中，`this`会返回顶层对象。  
-        但是，Node.js 模块中`this`返回的是当前模块，
-        ES6模块中`this`返回的是`undefined`。
-    * 函数里面的`this`，如果函数不是作为对象的方法运行，而是单纯作为函数运行，`this`会指向顶层对象。
+    * **全局环境**中，`this`会返回**顶层对象**。  
+        但是，**Node.js 模块**中`this`返回的是**当前模块**，
+        **ES6模块**中`this`返回的是`undefined`。
+    * **函数里面**的`this`，如果函数不是作为对象的方法运行，而是**单纯作为函数运行**，`this`会指向**顶层对象**。
         但是，严格模式下，这时`this`会返回`undefined`。
     * 不管是严格模式，还是普通模式，`new Function('return this')()`，总是会返回全局对象。但是，如果浏览器用了CSP（Content Security Policy，内容安全策略），那么`eval`、`new Function`这些方法都可能无法使用。
 
@@ -705,6 +705,682 @@ tags:
         `async`函数的**返回值是`Promise`对象**，这比`Generator`函数的返回值是`Iterator`对象方便多了。你可以**用`then`方法**指定下一步的操作。
 
 * 进一步说，`async`函数完全可以看作**多个异步操作，包装成的一个`Promise`对象**，而`await`命令就是内部`then`命令的语法糖。
+
+---
+
+
+# Class 的基本语法
+
+## 1. 简介
+
+### 类的由来
+
+* JavaScript 语言中，生成实例对象的传统方法是通过构造函数。下面是一个例子。
+
+    ```js
+    function Point(x, y) {
+        this.x = x;
+        this.y = y;
+    }
+
+    Point.prototype.toString = function () {
+        return '(' + this.x + ', ' + this.y + ')';
+    };
+
+    var p = new Point(1, 2);
+    ```
+
+    上面这种写法跟传统的面向对象语言（比如 C++ 和 Java）差异很大，很容易让新学习这门语言的程序员感到困惑。
+
+* **ES6 提供了更接近传统语言的写法，引入了 Class（类）这个概念**，作为对象的模板。通过`class`关键字，可以定义类。
+
+    基本上，ES6 的`class`可以看作只是一个语法糖，它的绝大部分功能，ES5 都可以做到，新的`class`写法只是让对象原型的写法更加清晰、更像面向对象编程的语法而已。上面的代码用 ES6 的`class`改写，就是下面这样。
+
+    ```js
+    class Point {
+        constructor(x, y) {
+            this.x = x;
+            this.y = y;
+        }
+
+        toString() {
+            return '(' + this.x + ', ' + this.y + ')';
+        }
+    }
+    ```
+
+    上面代码定义了一个“类”，可以看到里面有一个`constructor()`方法，这就是**构造方法**，而`this`关键字则代表**实例对象**。这种新的 Class 写法，本质上与本章开头的 ES5 的构造函数Point是一致的。
+
+    Point类除了构造方法，还定义了一个toString()**方法**。注意，定义toString()方法的时候，前面不需要加上`function`这个关键字，直接把函数定义放进去了就可以了。另外，方法与方法之间不需要逗号分隔，加了会报错。
+
+* ES6 的类，完全可以看作构造函数的另一种写法。
+
+    ```js
+    class Point {
+        // ...
+    }
+
+    typeof Point // "function"
+    Point === Point.prototype.constructor // true
+    ```
+
+    上面代码表明，**类的数据类型就是函数**，类本身就指向构造函数。
+
+* 使用的时候，也是直接对类**使用`new`命令**，跟构造函数的用法完全一致。
+
+* 构造函数的`prototype`属性，在 ES6 的“类”上面继续存在。事实上，**类的所有方法都定义在类的`prototype`属性上面**。
+
+    ```js
+    class Point {
+        constructor() {
+            // ...
+        }
+
+        toString() {
+            // ...
+        }
+
+        toValue() {
+            // ...
+        }
+    }
+
+    // 等同于
+
+    Point.prototype = {
+        constructor() {},
+        toString() {},
+        toValue() {},
+    };
+    ```
+
+* 因此，**在类的实例上面调用方法，其实就是调用原型上的方法**。
+
+    ```js
+    class B {}
+    const b = new B();
+
+    b.constructor === B.prototype.constructor // true
+    ```
+    
+    上面代码中，b是B类的实例，它的constructor()方法就是B类原型的constructor()方法。
+
+* 由于类的方法都定义在`prototype`对象上面，所以类的新方法可以添加在`prototype`对象上面。**`Object.assign()`方法可以很方便地一次向类添加多个方法**。
+
+    ```js
+    class Point {
+        constructor(){
+            // ...
+        }
+    }
+
+    Object.assign(Point.prototype, {
+        toString(){},
+        toValue(){}
+    });
+    ```
+
+* **`prototype`对象的`constructor()`属性，直接指向“类”的本身**，这与 ES5 的行为是一致的。
+
+    ```js
+    Point.prototype.constructor === Point // true
+    ```
+
+* 类的内部所有定义的方法，都是**不可枚举**的（non-enumerable）。
+
+    ```js
+    class Point {
+        constructor(x, y) {
+            // ...
+        }
+
+        toString() {
+            // ...
+        }
+    }
+
+    Object.keys(Point.prototype)
+    // []
+    Object.getOwnPropertyNames(Point.prototype)
+    // ["constructor","toString"]
+    ```
+
+    上面代码中，toString()方法是Point类内部定义的方法，它是不可枚举的。这一点与 ES5 的行为不一致。
+
+    ```js
+    var Point = function (x, y) {
+        // ...
+    };
+
+    Point.prototype.toString = function () {
+        // ...
+    };
+
+    Object.keys(Point.prototype)
+    // ["toString"]
+    Object.getOwnPropertyNames(Point.prototype)
+    // ["constructor","toString"]
+    ```
+
+    上面代码采用 ES5 的写法，toString()方法就是可枚举的。
+
+### `constructor` 方法
+
+* `constructor()`方法是类的默认方法，通过`new`命令生成对象实例时，自动调用该方法。
+
+    如果没有显式定义，一个空的`constructor()`方法会被默认添加。
+
+* `constructor()`方法默认返回实例对象（即`this`），完全可以指定返回另外一个对象。
+
+    ```js
+    class Foo {
+        constructor() {
+            return Object.create(null);
+        }
+    }
+
+    new Foo() instanceof Foo
+    // false
+    ```
+
+    上面代码中，`constructor()`函数返回一个全新的对象，结果导致实例对象不是Foo类的实例。
+
+* 类必须使用`new`调用，否则会报错。这是它跟普通构造函数的一个主要区别，后者不用`new`也可以执行。
+
+### 类的实例
+
+* 生成类的实例的写法，与 ES5 完全一样，也是使用`new`命令。前面说过，如果忘记加上`new`，像函数那样调用Class，将会报错。
+
+* 与 ES5 一样，实例的属性**除非显式定义在其本身（即定义在`this`对象上），否则都是定义在原型上（即定义在`class`上）**。
+
+    ```js
+    //定义类
+    class Point {
+
+        constructor(x, y) {
+            this.x = x;
+            this.y = y;
+        }
+
+        toString() {
+            return '(' + this.x + ', ' + this.y + ')';
+        }
+
+    }
+
+    var point = new Point(2, 3);
+
+    point.toString() // (2, 3)
+
+    point.hasOwnProperty('x') // true
+    point.hasOwnProperty('y') // true
+    point.hasOwnProperty('toString') // false
+    point.__proto__.hasOwnProperty('toString') // true
+    ```
+
+    上面代码中，x和y都是实例对象point自身的属性（因为定义在`this`对象上），所以`hasOwnProperty()`方法返回`true`，而toString()是原型对象的属性（因为定义在Point类上），所以`hasOwnProperty()`方法返回`false`。这些都与 ES5 的行为保持一致。
+
+* 与 ES5 一样，类的所有实例共享一个原型对象。
+
+    ```js
+    var p1 = new Point(2,3);
+    var p2 = new Point(3,2);
+
+    p1.__proto__ === p2.__proto__
+    //true
+    ```
+
+    上面代码中，p1和p2都是Point的实例，它们的原型都是`Point.prototype`，所以`__proto__`属性是相等的。
+
+    这也意味着，**可以通过实例的`__proto__`属性为“类”添加方法**。
+
+    > `__proto__` 并**不是语言本身的特性**，这是各大**厂商具体实现时添加的私有属性**，虽然目前很多现代浏览器的 JS 引擎中都提供了这个私有属性，但依旧**不建议在生产中使用该属性**，避免对环境产生依赖。生产环境中，我们**可以使用 `Object.getPrototypeOf` 方法来获取实例对象的原型**，然后再来为原型添加方法/属性。
+
+    ```js
+    var p1 = new Point(2,3);
+    var p2 = new Point(3,2);
+
+    p1.__proto__.printName = function () { return 'Oops' };
+
+    p1.printName() // "Oops"
+    p2.printName() // "Oops"
+
+    var p3 = new Point(4,2);
+    p3.printName() // "Oops"
+    ```
+
+    上面代码在p1的原型上添加了一个printName()方法，由于p1的原型就是p2的原型，因此p2也可以调用这个方法。而且，此后新建的实例p3也可以调用这个方法。这意味着，**使用实例的`__proto__`属性改写原型，必须相当谨慎，不推荐使用**，因为这会改变“类”的原始定义，影响到所有实例。
+
+### 取值函数（getter）和存值函数（setter）
+
+* 与 ES5 一样，在“类”的内部可以**使用`get`和`set`关键字，对某个属性设置存值函数和取值函数，拦截该属性的存取行为**。
+
+    ```js
+    class MyClass {
+        constructor() {
+            // ...
+        }
+        get prop() {
+            return 'getter';
+        }
+        set prop(value) {
+            console.log('setter: '+value);
+        }
+    }
+
+    let inst = new MyClass();
+
+    inst.prop = 123;
+    // setter: 123
+
+    inst.prop
+    // 'getter'
+    ```
+
+    上面代码中，prop属性有对应的存值函数和取值函数，因此赋值和读取行为都被自定义了。
+
+* 存值函数和取值函数是设置在属性的 **`Descriptor` 对象**上的。
+
+    ```js
+    class CustomHTMLElement {
+        constructor(element) {
+            this.element = element;
+        }
+
+        get html() {
+            return this.element.innerHTML;
+        }
+
+        set html(value) {
+            this.element.innerHTML = value;
+        }
+    }
+
+    var descriptor = Object.getOwnPropertyDescriptor(
+        CustomHTMLElement.prototype, "html"
+    );
+
+    "get" in descriptor  // true
+    "set" in descriptor  // true
+    ```
+
+    上面代码中，存值函数和取值函数是定义在html属性的描述对象上面，这与 ES5 完全一致。
+
+### 属性表达式
+
+类的属性名，可以采用表达式。
+
+```js
+let methodName = 'getArea';
+
+class Square {
+  constructor(length) {
+    // ...
+  }
+
+  [methodName]() {
+    // ...
+  }
+}
+```
+
+上面代码中，Square类的方法名getArea，是从表达式得到的。
+
+### Class 表达式
+
+与函数一样，**类也可以使用表达式的形式定义**。
+
+```js
+const MyClass = class Me {
+  getClassName() {
+    return Me.name;
+  }
+};
+```
+
+上面代码使用表达式定义了一个类。需要注意的是，这个类的名字是Me，但是Me**只在 Class 的内部可用**，指代当前类。在 Class 外部，这个类**只能用MyClass引用**。
+
+```js
+let inst = new MyClass();
+inst.getClassName() // Me
+Me.name // ReferenceError: Me is not defined
+```
+
+上面代码表示，Me只在 Class 内部有定义。
+
+**如果类的内部没用到的话，可以省略Me**，也就是可以写成下面的形式。
+
+```js
+const MyClass = class { /* ... */ };
+```
+
+采用 Class 表达式，可以写出**立即执行的 Class**。
+
+```js
+let person = new class {
+  constructor(name) {
+    this.name = name;
+  }
+
+  sayName() {
+    console.log(this.name);
+  }
+}('张三');
+
+person.sayName(); // "张三"
+```
+
+上面代码中，person是一个立即执行的类的实例。
+
+### 注意点
+
+#### （1）严格模式
+
+**类和模块的内部，默认就是严格模式**，所以不需要使用use strict指定运行模式。只要你的代码写在类或模块之中，就**只有严格模式可用**。考虑到未来所有的代码，其实都是运行在模块之中，所以 ES6 实际上把整个语言升级到了严格模式。
+
+#### （2）不存在提升
+
+类**不存在变量提升（hoist）**，这一点与 ES5 完全不同。
+
+```js
+new Foo(); // ReferenceError
+class Foo {}
+```
+
+上面代码中，Foo类**使用在前，定义在后，这样会报错**，因为 ES6 **不会把类的声明提升到代码头部**。这种规定的原因与下文要提到的继承有关，必须保证子类在父类之后定义。
+
+```js
+{
+  let Foo = class {};
+  class Bar extends Foo {
+  }
+}
+```
+
+上面的代码不会报错，因为Bar继承Foo的时候，Foo已经有定义了。但是，如果存在class的提升，上面代码就会报错，因为**class会被提升到代码头部，而let命令是不提升的**，所以导致Bar继承Foo的时候，Foo还没有定义。
+
+#### （3）`name` 属性
+
+由于本质上，ES6 的类只是 ES5 的构造函数的一层包装，所以函数的许多特性都被Class继承，包括`name`属性。
+
+```js
+class Point {}
+Point.name // "Point"
+```
+
+name属性总是返回紧跟在`class`关键字后面的类名。
+
+#### （4）Generator 方法
+
+如果某个方法之前加上星号（`*`），就表示该方法是一个 Generator 函数。
+
+```js
+class Foo {
+  constructor(...args) {
+    this.args = args;
+  }
+  * [Symbol.iterator]() {
+    for (let arg of this.args) {
+      yield arg;
+    }
+  }
+}
+
+for (let x of new Foo('hello', 'world')) {
+  console.log(x);
+}
+// hello
+// world
+```
+
+上面代码中，Foo类的`Symbol.iterator`方法前有一个星号，表示该方法是一个 Generator 函数。`Symbol.iterator`方法返回一个Foo类的默认遍历器，`for...of`循环会自动调用这个遍历器。
+
+#### （5）`this` 的指向
+
+类的方法内部如果含有`this`，它**默认指向类的实例**。但是，必须非常小心，**一旦单独使用该方法，很可能报错**。
+
+```js
+class Logger {
+  printName(name = 'there') {
+    this.print(`Hello ${name}`);
+  }
+
+  print(text) {
+    console.log(text);
+  }
+}
+
+const logger = new Logger();
+const { printName } = logger;
+printName(); // TypeError: Cannot read property 'print' of undefined
+```
+
+上面代码中，printName方法中的`this`，默认指向Logger类的实例。但是，**如果将这个方法提取出来单独使用，`this`会指向该方法运行时所在的环境**（由于 `class` 内部是**严格模式**，所以 `this` 实际**指向的是`undefined`**），从而导致找不到print方法而报错。
+
+**一个比较简单的解决方法是，在构造方法中绑定`this`**，这样就不会找不到print方法了。
+
+```js
+class Logger {
+  constructor() {
+    this.printName = this.printName.bind(this);
+  }
+
+  // ...
+}
+```
+
+**另一种解决方法是使用箭头函数。**
+
+```js
+class Obj {
+  constructor() {
+    this.getThis = () => this;
+  }
+}
+
+const myObj = new Obj();
+myObj.getThis() === myObj // true
+```
+
+**箭头函数内部的`this`**总是指向**定义时所在的对象**。上面代码中，箭头函数位于构造函数内部，它的定义生效的时候，是在构造函数执行的时候。这时，箭头函数所在的运行环境，肯定是**实例对象**，所以`this`会总是指向实例对象。
+
+还有一种解决方法是使用`Proxy`，获取方法的时候，自动绑定`this`。
+
+```js
+function selfish (target) {
+  const cache = new WeakMap();
+  const handler = {
+    get (target, key) {
+      const value = Reflect.get(target, key);
+      if (typeof value !== 'function') {
+        return value;
+      }
+      if (!cache.has(value)) {
+        cache.set(value, value.bind(target));
+      }
+      return cache.get(value);
+    }
+  };
+  const proxy = new Proxy(target, handler);
+  return proxy;
+}
+
+const logger = selfish(new Logger());
+```
+
+---
+
+
+# Class 的继承
+
+## 1. 简介
+
+Class 可以通过`extends`关键字实现继承，这比 ES5 的通过修改原型链实现继承，要清晰和方便很多。
+
+```js
+class Point {
+}
+
+class ColorPoint extends Point {
+}
+```
+
+上面代码定义了一个ColorPoint类，该类通过`extends`关键字，继承了Point类的所有属性和方法。但是由于没有部署任何代码，所以这两个类完全一样，等于复制了一个Point类。下面，我们在ColorPoint内部加上代码。
+
+```js
+class ColorPoint extends Point {
+constructor(x, y, color) {
+    super(x, y); // 调用父类的constructor(x, y)
+    this.color = color;
+}
+
+toString() {
+    return this.color + ' ' + super.toString(); // 调用父类的toString()
+}
+}
+```
+
+上面代码中，`constructor`方法和`toString`方法之中，都出现了`super`关键字，它在这里表示**父类的构造函数，用来新建父类的`this`对象**。
+
+**子类必须在`constructor`方法中调用`super`方法**，否则新建实例时会报错。这是因为子类自己的`this`对象，必须先通过父类的构造函数完成塑造，得到与父类同样的实例属性和方法，然后再对其进行加工，加上子类自己的实例属性和方法。如果不调用`super`方法，子类就得不到`this`对象。
+
+```js
+class Point { /* ... */ }
+
+class ColorPoint extends Point {
+constructor() {
+}
+}
+
+let cp = new ColorPoint(); // ReferenceError
+```
+
+上面代码中，ColorPoint继承了父类Point，但是它的构造函数没有调用`super`方法，导致新建实例时报错。
+
+ES5 的继承，实质是先创造子类的实例对象`this`，然后再将父类的方法添加到`this`上面（`Parent.apply(this)`）。ES6 的继承机制完全不同，实质是**先将父类实例对象的属性和方法，加到`this`上面（所以必须先调用`super`方法）**，然后再用子类的构造函数修改`this`。
+
+**如果子类没有定义`constructor`方法，这个方法会被默认添加**，代码如下。也就是说，不管有没有显式定义，任何一个子类都有`constructor`方法。
+
+```js
+class ColorPoint extends Point {
+}
+
+// 等同于
+class ColorPoint extends Point {
+  constructor(...args) {
+    super(...args);
+  }
+}
+```
+
+另一个需要注意的地方是，在子类的构造函数中，只有调用`super`之后，才可以使用`this`关键字，否则会报错。这是因为子类实例的构建，基于父类实例，只有`super`方法才能调用父类实例。
+
+```js
+class Point {
+  constructor(x, y) {
+    this.x = x;
+    this.y = y;
+  }
+}
+
+class ColorPoint extends Point {
+  constructor(x, y, color) {
+    this.color = color; // ReferenceError
+    super(x, y);
+    this.color = color; // 正确
+  }
+}
+```
+
+上面代码中，子类的`constructor`方法没有调用`super`之前，就使用`this`关键字，结果报错，而放在`super`方法之后就是正确的。
+
+下面是生成子类实例的代码。
+
+```js
+let cp = new ColorPoint(25, 8, 'green');
+
+cp instanceof ColorPoint // true
+cp instanceof Point // true
+```
+
+上面代码中，**实例对象cp同时是ColorPoint和Point两个类的实例**，这与 ES5 的行为完全一致。
+
+最后，**父类的静态方法，也会被子类继承**。
+
+```js
+class A {
+  static hello() {
+    console.log('hello world');
+  }
+}
+
+class B extends A {
+}
+
+B.hello()  // hello world
+```
+
+上面代码中，hello()是A类的静态方法，B继承A，也继承了A的静态方法。
+
+## 2. `Object.getPrototypeOf()`
+
+`Object.getPrototypeOf`方法可以用来从子类上获取父类。
+
+```js
+Object.getPrototypeOf(ColorPoint) === Point
+// true
+```
+
+因此，可以使用这个方法判断，一个类是否继承了另一个类。
+
+## 类的 `prototype` 属性和`__proto__`属性
+
+大多数浏览器的 ES5 实现之中，每一个**对象**都有`__proto__`属性，指向对应的**构造函数**的`prototype`属性。Class 作为构造函数的语法糖，同时有`prototype`属性和`__proto__`属性，因此同时存在两条继承链。
+
+（1）子类的`__proto__`属性，表示构造函数的继承，总是指向**父类**。
+
+（2）子类`prototype`属性的`__proto__`属性，表示方法的继承，总是指向**父类的`prototype`属性**。
+
+```js
+class A {
+}
+
+class B extends A {
+}
+
+B.__proto__ === A // true
+B.prototype.__proto__ === A.prototype // true
+```
+
+上面代码中，子类B的`__proto__`属性指向父类A，子类B的`prototype`属性的`__proto__`属性指向父类A的`prototype`属性。
+
+这样的结果是因为，类的继承是按照下面的模式实现的。
+
+```js
+class A {
+}
+
+class B {
+}
+
+// B 的实例继承 A 的实例
+Object.setPrototypeOf(B.prototype, A.prototype);
+
+// B 继承 A 的静态属性
+Object.setPrototypeOf(B, A);
+
+const b = new B();
+```
+
+《对象的扩展》一章给出过`Object.setPrototypeOf`方法的实现。
+
+```js
+Object.setPrototypeOf = function (obj, proto) {
+  obj.__proto__ = proto;
+  return obj;
+}
+```
+
 
 ---
 
