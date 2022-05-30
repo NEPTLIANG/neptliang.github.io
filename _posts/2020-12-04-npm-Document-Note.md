@@ -1,6 +1,6 @@
 ---
 layout:       post
-title:        "npm文档笔记"
+title:        "npm部分文档机翻整理"
 subtitle:     "部分文档机翻"
 date:         2020-12-04 22:24:00
 author:       "NeptLiang"

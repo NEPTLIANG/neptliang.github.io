@@ -1,6 +1,6 @@
 ---
 layout:       post
-title:        "NUXT.JS文档机翻整理"
+title:        "NUXT.JS部分文档机翻整理"
 subtitle:     "null"
 date:         2021-02-18 15:46:54
 author:       "NeptLiang"
