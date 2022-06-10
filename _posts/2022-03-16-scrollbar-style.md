@@ -15,7 +15,7 @@ tags:
 
 # `0x00` 事故背景
 
-遇到个修改滚动滑块和滚动条样式，且要求滚动条不占用布局内部空间（即布局内容要铺到滚动条轨道底下，也就是类似于滚动条轨道透明的样式）的需求，先给滚动滑块调了样式，但没有效果，谷歌了半天也没有找到原因，最后在[《scrollbar | CSS-Tricks》（https://css-tricks.com/almanac/properties/s/scrollbar/）](https://css-tricks.com/almanac/properties/s/scrollbar/)找到解释，遂记录下
+遇到个修改滚动滑块和滚动条样式，且要求滚动条不占用布局内部空间（即布局内容要铺到滚动条轨道底下，也就是类似于滚动条轨道透明的样式）的需求，先给滚动滑块调了样式，但没有效果，谷歌了半天也没有找到原因，最后在[《scrollbar \| CSS-Tricks》（https://css-tricks.com/almanac/properties/s/scrollbar/）](https://css-tricks.com/almanac/properties/s/scrollbar/)找到解释，遂记录下
 
 
 # `0x01` 单纯设置`::-webkit-scrollbar-thumb`样式无效的处理

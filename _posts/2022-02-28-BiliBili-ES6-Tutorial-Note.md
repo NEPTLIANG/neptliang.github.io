@@ -1286,88 +1286,88 @@ connect({
 
 1. 命名捕获分组
 
-非命名捕获分组：`(正则模式)`，捕获到的结果存储在返回**数组**中的完整结果之后（`groups`属性值为`undefined`）
+	非命名捕获分组：`(正则模式)`，捕获到的结果存储在返回**数组**中的完整结果之后（`groups`属性值为`undefined`）
 
-```js
-const str = '<a href="https://github.com">GitHub</a>'
+	```js
+	const str = '<a href="https://github.com">GitHub</a>'
 
-const reg = /<a href="(.*)">(.*)<\/a>/;
-const result = reg.exec(str);
+	const reg = /<a href="(.*)">(.*)<\/a>/;
+	const result = reg.exec(str);
 
-console.log(result);  	// [ '<a href="https://github.com">GitHub</a>', 'https://github.com', 'GitHub', index: 0, input: '<a href="https://github.com">GitHub</a>', groups: undefined ]
-```
+	console.log(result);  	// [ '<a href="https://github.com">GitHub</a>', 'https://github.com', 'GitHub', index: 0, input: '<a href="https://github.com">GitHub</a>', groups: undefined ]
+	```
 
-命名捕获分组：`(?<命名>正则模式)`，结果以**键值对**形式储存在返回值的**`groups`属性**中（也可以通过上述默认捕获分组的形式用索引访问分组匹配结果元素）
+	命名捕获分组：`(?<命名>正则模式)`，结果以**键值对**形式储存在返回值的**`groups`属性**中（也可以通过上述默认捕获分组的形式用索引访问分组匹配结果元素）
 
-```js
-const str = '<a href="https://github.com">GitHub</a>';
-const reg = /<a href="(?<name1>.*)">(?<name2>.*)<\/a>/;
+	```js
+	const str = '<a href="https://github.com">GitHub</a>';
+	const reg = /<a href="(?<name1>.*)">(?<name2>.*)<\/a>/;
 
-const result = reg.exec(str);
+	const result = reg.exec(str);
 
-console.log(result);  	// [ '<a href="https://github.com">GitHub</a>', 'https://github.com', 'GitHub', index: 0, input: '<a href="https://github.com">GitHub</a>', groups: { name1: 'https://github.com', name2: 'GitHub' } ]
-```
+	console.log(result);  	// [ '<a href="https://github.com">GitHub</a>', 'https://github.com', 'GitHub', index: 0, input: '<a href="https://github.com">GitHub</a>', groups: { name1: 'https://github.com', name2: 'GitHub' } ]
+	```
 
 2. 断言
 
-正向断言：`模式1(?=模式2)`，只有**后面**的内容符合某种模式，才匹配上**前面**的内容（后面符合才匹配前面）
+	正向断言：`模式1(?=模式2)`，只有**后面**的内容符合某种模式，才匹配上**前面**的内容（后面符合才匹配前面）
 
-反向断言：`(?<=模式1)模式2`，只有**前面**的内容符合某种模式，才匹配上**后面**的内容（前面符合才匹配后面）
+	反向断言：`(?<=模式1)模式2`，只有**前面**的内容符合某种模式，才匹配上**后面**的内容（前面符合才匹配后面）
 
-```js
-const str = 'abcd114514就是逊啦233333333我超勇的';  	
+	```js
+	const str = 'abcd114514就是逊啦233333333我超勇的';  	
 
-let reg = /\d+/;  	
-console.log(reg.exec(str));  	// [ '114514', index: 4, input: 'abcd114514就是逊啦233333333我超勇的', groups: undefined ]
+	let reg = /\d+/;  	
+	console.log(reg.exec(str));  	// [ '114514', index: 4, input: 'abcd114514就是逊啦233333333我超勇的', groups: undefined ]
 
-// 正向断言
-reg = /\d+(?=我)/;  	//只有后面符合/我/的时候才匹配上前面的/\d+/
-let result = reg.exec(str);
+	// 正向断言
+	reg = /\d+(?=我)/;  	//只有后面符合/我/的时候才匹配上前面的/\d+/
+	let result = reg.exec(str);
 
-console.log(result);  	// [ '233333333', index: 14, input: 'abcd114514就是逊啦233333333我超勇的', groups: undefined ]
+	console.log(result);  	// [ '233333333', index: 14, input: 'abcd114514就是逊啦233333333我超勇的', groups: undefined ]
 
-// 反向断言
-reg = /(?<=逊啦)\d+/;  	//只有前面符合/逊啦/的时候才匹配上后面的/\d+/
-result = reg.exec(str);
+	// 反向断言
+	reg = /(?<=逊啦)\d+/;  	//只有前面符合/逊啦/的时候才匹配上后面的/\d+/
+	result = reg.exec(str);
 
-console.log(result);  	// [ '233333333', index: 14, input: 'abcd114514就是逊啦233333333我超勇的', groups: undefined ]
-```
+	console.log(result);  	// [ '233333333', index: 14, input: 'abcd114514就是逊啦233333333我超勇的', groups: undefined ]
+	```
 
 3. dotAll模式
 
-"dot"指“`.`”元字符，匹配**除换行符以外**的任意单个字符
+	"dot"指“`.`”元字符，匹配**除换行符以外**的任意单个字符
 
-而**dotAll模式（`/模式/s`）让`.`也能匹配换行符**
+	而**dotAll模式（`/模式/s`）让`.`也能匹配换行符**
 
-```js
-const str = `
-	<ul>
-		<li>
-			<a>肖申克的救赎</a>
-			<p>上映日期：1994-09-10</p>
-		</li>
-		<li>
-			<a>阿甘正传</a>
-			<p>上映日期：1994-07-06</p>
-		</li>
-	</ul>
-`;
+	```js
+	const str = `
+		<ul>
+			<li>
+				<a>肖申克的救赎</a>
+				<p>上映日期：1994-09-10</p>
+			</li>
+			<li>
+				<a>阿甘正传</a>
+				<p>上映日期：1994-07-06</p>
+			</li>
+		</ul>
+	`;
 
-let reg = /<li>\s+<a>(.*?)<\/a>\s+<p>(.*?)<\/p>/;  	//一般是采用\s来匹配换行符和tab等空白符
-console.log(reg.exec(str));  	// [ '<li>\n\t\t\t<a>肖申克的救赎</a>\n\t\t\t<p>上映日期：1994-09-10</p>', '肖申克的救赎', '上映日期：1994-09-10', index: 9, input: '\n\t<ul>\n\t\t<li>\n\t\t\t<a>肖申克的救赎</a>\n\t\t\t<p>上映日期：1994-09-…甘正传</p>\n\t\t\t<p>上映日期：1994-07-06</p>\n\t\t</li>\n\t</ul>\n', groups: undefined ]
-reg = /<li>.*?<a>(.*?)<\/a>.*?<p>(.*?)<\/p>/;  	//直接使用“.”会匹配不到换行符
-console.log(reg.exec(str));  	//null
+	let reg = /<li>\s+<a>(.*?)<\/a>\s+<p>(.*?)<\/p>/;  	//一般是采用\s来匹配换行符和tab等空白符
+	console.log(reg.exec(str));  	// [ '<li>\n\t\t\t<a>肖申克的救赎</a>\n\t\t\t<p>上映日期：1994-09-10</p>', '肖申克的救赎', '上映日期：1994-09-10', index: 9, input: '\n\t<ul>\n\t\t<li>\n\t\t\t<a>肖申克的救赎</a>\n\t\t\t<p>上映日期：1994-09-…甘正传</p>\n\t\t\t<p>上映日期：1994-07-06</p>\n\t\t</li>\n\t</ul>\n', groups: undefined ]
+	reg = /<li>.*?<a>(.*?)<\/a>.*?<p>(.*?)<\/p>/;  	//直接使用“.”会匹配不到换行符
+	console.log(reg.exec(str));  	//null
 
-reg = /<li>.*?<a>(.*?)<\/a>.*?<p>(.*?)<\/p>/s;  	//设置dotAll模式后“.”可以匹配换行符了
-let result = reg.exec(str);
+	reg = /<li>.*?<a>(.*?)<\/a>.*?<p>(.*?)<\/p>/s;  	//设置dotAll模式后“.”可以匹配换行符了
+	let result = reg.exec(str);
 
-console.log(result);  	// [ '<li>\n\t\t\t<a>肖申克的救赎</a>\n\t\t\t<p>上映日期：1994-09-10</p>', '肖申克的救赎', '上映日期：1994-09-10', index: 9, input: '\n\t<ul>\n\t\t<li>\n\t\t\t<a>肖申克的救赎</a>\n\t\t\t<p>上映日期：1994-09-…甘正传</p>\n\t\t\t<p>上映日期：1994-07-06</p>\n\t\t</li>\n\t</ul>\n', groups: undefined ]
+	console.log(result);  	// [ '<li>\n\t\t\t<a>肖申克的救赎</a>\n\t\t\t<p>上映日期：1994-09-10</p>', '肖申克的救赎', '上映日期：1994-09-10', index: 9, input: '\n\t<ul>\n\t\t<li>\n\t\t\t<a>肖申克的救赎</a>\n\t\t\t<p>上映日期：1994-09-…甘正传</p>\n\t\t\t<p>上映日期：1994-07-06</p>\n\t\t</li>\n\t</ul>\n', groups: undefined ]
 
-reg = /<li>.*?<a>(.*?)<\/a>.*?<p>(.*?)<\/p>/gs;
-while (result = reg.exec(str)) {
-	console.log({ while: result });
-}
-```
+	reg = /<li>.*?<a>(.*?)<\/a>.*?<p>(.*?)<\/p>/gs;
+	while (result = reg.exec(str)) {
+		console.log({ while: result });
+	}
+	```
 
 ---
 
@@ -1442,20 +1442,240 @@ console.log({
 
 将高维数组降维为低维数组
 
-* `flat`: 
+* `flat`: **不传参时**展开最外层，传**数值**参数时展开相应层数
+
+	```js
+	const arr = [ 1, , 2, [ 3, 4, [5, 6, 7], 8, 9 ], 0 ];
+
+	let result = arr.flat();  	//不传参时展开最外层
+
+	console.log(result);  	// [ 1, 2, 3, 4, [ 5, 6, 7 ], 8, 9, 0 ]
+
+	result = arr.flat(2);  	//传数值参数时展开相应层数
+
+	console.log(result);  	// [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 0 ]
+
+	result = arr.flat(Infinity);
+	console.log(result);  	// [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 0 ]
+	```
+
+* `flatMap`: 先`map`后`flat`
+
+	```js
+	const arr = [ 1, 2, 3 ];
+
+	const result = arr.flatMap(item => [item * 10, item * 20]);  	//先map后flat，相当于[[10, 20], [20, 40], [30, 60]].flat()
+
+	console.log(result);  	// [ 10, 20, 20, 40, 30, 60 ]
+	```
+
+## `Symbol.prototype.description`
 
 ```js
-const arr = [ 1, 2, [ 3, 4, [5, 6, 7], 8, 9 ], 0 ];
+const sym = Symbol('hhh');
 
-const result = arr.flat();
-
-console.log(result);  	// [ 1, 2, 3, 4, [ 5, 6, 7 ], 8, 9, 0 ]
+console.log(sym.description);  	//hhh
 ```
+
+---
+
+
+# `0x14` ES11特性
+
+## 私有属性
+
+```js
+class Person {
+	// 公有属性
+	name;
+	// 私有属性
+	#age;
+	#weight;
+
+	constructor(name, age, weight) {
+		this.name = name;
+		this.#age = age;
+		this.#weight = weight;
+	}
+
+	getInfo() {
+		console.log({
+			innerName: 		this.name,
+			innerAge: 		this.#age,
+			innerWeight: 	this.#weight
+		});  	//Uncaught SyntaxError: Private field '#age' must be declared in an enclosing class
+	}
+}
+
+const jina = new Person('Jina', 18, '50kg');
+jina.getInfo();  	// { innerName: 'Jina', innerAge: 18, innerWeight: '50kg' }
+console.log({
+	outerName: 		jina.name,
+	outerAge: 		jina.#age,
+	outerWeight: 	jina.#weight
+});  	//Uncaught SyntaxError: Private field '#age' must be declared in an enclosing class
+```
+
+## `Promise.all`与`Promise.allSettled`
+
+批量执行`Promise`
+
+* `Promise.all`
+	* 有`Promise` rejected时：返回**rejected的参数`Promise`的结果**
+	* 所有`Promise`都resolved时：返回一个**状态为resolved、`[[PromiseResult]]`为所有参数`Promise`的结果数组**的`Promise`
+* `Promise.allSettled`: 返回的`Promise`**始终resolved，但内部`[[PromiseResult]]`属性中有各个`Promise`的结果**
+
+```js
+const promise1 = new Promise((resolve, reject) => {
+	setTimeout(() => {
+		resolve('数据1');
+	}, 1000);
+});
+const promise2 = new Promise((resolve, reject) => {
+	setTimeout(() => {
+		resolve('数据2');
+		// reject('数据2获取失败');
+	}, 1000);
+});
+
+/* 
+	* 有Promise rejected时：返回rejected的参数Promise的结果
+	* 所有Promise都resolved时：返回一个状态为resolved、[[PromiseResult]]为所有参数Promise的结果数组的Promise
+*/
+const result = Promise.all([ promise1, promise2 ]);
+// 返回的Promise始终resolved，但内部[[PromiseResult]]属性中有各个Promise的结果
+const resultSettled = Promise.allSettled([ promise1, promise2 ]);
+
+console.log({ result, resultSettled });
+```
+
+* 只有**全部任务都成功时才往下执行**的话用`all`
+* **每个任务都要执行**的话用`allSettled`
+
+## `String.prototype.matchAll`
+
+匹配字符串中符合正则模式的所有结果并返回之，返回遍历器对象
+
+```js
+const str = `
+	<ul>
+		<li>
+			<a>肖申克的救赎</a>
+			<p>上映日期：1994-09-10</p>
+		</li>
+		<li>
+			<a>阿甘正传</a>
+			<p>上映日期：1994-07-06</p>
+		</li>
+	</ul>
+`;
+
+const regExp = /<li>.*?<a>(.*?)<\/a>.*?<p>(.*?)<\/p>/sg;  	//一定要加末尾这个寄
+const result = [ ...str.matchAll(regExp) ];  	//方法返回遍历器对象，可用拓展运算符展至数组
+
+console.log(result);  	// [ [ "<li>\n\t\t\t<a>肖申克的救赎</a>\n\t\t\t<p>上映日期：1994-09-10</p>", "肖申克的救赎", "上映日期：1994-09-10" ], [ "<li>\n\t\t\t<a>阿甘正传</a>\n\t\t\t<p>上映日期：1994-07-06</p>", "阿甘正传", "上映日期：1994-07-06" ] ]
+```
+
+## 可选链操作符
+
+```js
+// const getHost = conf => console.log(conf && conf.db && conf.db.host);  	//以前的写法
+const getHost = conf => console.log(conf?.db?.host);
+
+getHost({
+	db: {
+		host: '127.0.0.1',
+		username: 'root'
+	},
+	cache: {
+		host: '192.168.1.100',
+		username: 'admin'
+	}
+});  	//127.0.0.1
+getHost();  	//undefined
+getHost({});  	//undefined
+getHost({
+	db: { username: 'root' }
+});  	//undefined
+// const getHost = conf => console.log(conf.db.host);
+// getHost({});
+```
+
+## `import`函数
+
+返回的是`Promise`对象
+
+```js
+const btn = document.getElementById('btn');
+
+btn.onclick = function() {
+	import('./test.js').then(module => {
+		console.log(module);
+		module.hello();
+	});  	//import函数返回的是Promise对象
+}
+```
+
+## `BigInt`
+
+大整型
+
+```js
+const n = 114514n;
+
+console.log({
+	n, 
+	typeof: typeof n
+});  	// { n: 114514n, typeof: 'bigint' }
+
+const num2 = 23333333;
+
+// BigInt函数
+const n2 = BigInt(num2);
+
+console.log(n2);  	//23333333n
+// console.log(BigInt(3.14));  	//Uncaught RangeError: The number 3.14 cannot be converted to a BigInt because it is not an integer
+
+const max = Number.MAX_SAFE_INTEGER;
+
+// 超过最大安全整数的大整数运算会出错
+console.log({
+	max,
+	'+1': max + 1,
+	'+2': max + 2,
+	// '*2': BigInt(max) * 2,  	//Uncaught TypeError: Cannot mix BigInt and other types, use explicit conversions
+	// 'BigInt+1': BigInt(max) + 1,  	//Uncaught TypeError: Cannot mix BigInt and other types, use explicit conversions
+	'+BigInt(1)': BigInt(max) + BigInt(1),  	//直接加Number值也会报错，故也得转换成BigInt
+	'+BigInt(2)': BigInt(max) + BigInt(2),
+	'+BigInt(Number.MAX_SAFE_INTEGER)': BigInt(max) + BigInt(max),
+});  	// { max: 9007199254740991, +1: 9007199254740992, +2: 9007199254740992, +BigInt(1): 9007199254740992n, +BigInt(2): 9007199254740993n, +BigInt(Number.MAX_SAFE_INTEGER): 18014398509481982n }
+```
+
+## `globalThis`
+
+浏览器环境中始终指向`window`，node环境中始终指向`global`
+
+```js
+const getThis = function() {
+	return {
+		this: this,
+		globalThis
+	};
+};
+
+const obj = { getThis };
+
+console.log({
+	inGlobal: 		getThis(),
+	inLocal: 	obj.getThis()
+});  	// { inGlobal: { this: Window, globalThis: Window }, inLocal: {this: { inLocal: ƒ }, globalThis: Window }
+```
+
 
 
 ---
 
-***`//未完待xu`***
+***`//The End`***
 
 ---
 
