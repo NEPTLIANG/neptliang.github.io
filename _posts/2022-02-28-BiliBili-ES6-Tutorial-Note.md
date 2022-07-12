@@ -820,30 +820,48 @@ xiaoMing.classIsOver();  	//Xiaoming's class is over
 `get`与`set`：
 
 ```js
-class Student {
-	t = 'Study'
+const GENDER = {
+	FEMALE: '女',
+	MALE: '男'
+}
+
+class Human {
+	a = 18;
+	gender;
+
+	constructor(gender) {
+		this.gender = gender;
+	}
 
 	// get
-	get task() {
+	get age() {
 		console.log('task属性被读取');
-		return this.t;
+		return this.gender === GENDER.FEMALE ? 
+			'undefined' : this.a;
 	}
 
 	// set
-	set task(task) {  	//必须有形参否则报错
-		this.t = task;
-		console.log('task属性被修改');
+	set age(nextAge) {  	//必须有形参否则报错
+		this.a = (
+			nextAge >= 0 ? nextAge : this.a
+		);
+		console.log('task属性被修改',this.a);
 	}
 }
-const xiaoMing = new Student();
+
+const xiaoHong = new Human('女');
+const xiaoMing = new Human('男');
 
 // 获取getter值
-console.log('gotten:', xiaoMing.task);  	//gotten: Study
-
-console.log('Before the set value:', xiaoMing.t);  	//Before the set value: Study
+console.log('Before the set value:', {
+	female: xiaoHong.age,
+	male: xiaoMing.age
+});  	//Before the set value: { female: undefined, male: 18 }
 // 给setter赋值
-xiaoMing.task = 'Sleep';
-console.log('After the value is set:', xiaoMing.t);  	//After the value is set: Sleep
+xiaoMing.age = -20;
+console.log('After the value is set:', xiaoMing.age);  	//After the value is set: 18
+xiaoMing.age = 20;
+console.log('After the value is set:', xiaoMing.age);  	//After the value is set: 20
 ```
 
 ---
@@ -1675,7 +1693,7 @@ console.log({
 
 ---
 
-***`//The End`***
+# ***`//End of Article`***
 
 ---
 
