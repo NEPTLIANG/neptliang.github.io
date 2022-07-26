@@ -826,7 +826,7 @@ const GENDER = {
 }
 
 class Human {
-	a = 18;
+	_age = 18;
 	gender;
 
 	constructor(gender) {
@@ -837,15 +837,15 @@ class Human {
 	get age() {
 		console.log('task属性被读取');
 		return this.gender === GENDER.FEMALE ? 
-			'undefined' : this.a;
+			'undefined' : this._age;
 	}
 
 	// set
 	set age(nextAge) {  	//必须有形参否则报错
-		this.a = (
-			nextAge >= 0 ? nextAge : this.a
+		this._age = (
+			nextAge >= 0 ? nextAge : this._age
 		);
-		console.log('task属性被修改',this.a);
+		console.log('task属性被修改',this._age);
 	}
 }
 
