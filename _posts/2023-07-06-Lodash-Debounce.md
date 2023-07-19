@@ -17,6 +17,8 @@ tags:
 
 复杂的地方主要是 `debounce` 的主流程部分，故 `cancel`、`flush`、`pending` 以及 `throttle` 部分大部分都略过
 
+完整源码可参考[该 PR：https://github.com/NEPTLIANG/lodash-source-code-interpretation/pull/1/files](https://github.com/NEPTLIANG/lodash-source-code-interpretation/pull/1/files)
+
 
 # `0x01` 源码及注释 
 
