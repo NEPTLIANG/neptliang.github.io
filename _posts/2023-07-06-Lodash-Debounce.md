@@ -518,19 +518,29 @@ function debounce(func, wait, options) {
 
     ![leading: false, trailing: true](https://neptliang.github.io/img/in-post/post-lodash-debounce/trailing.png)
 
-    可知
-    * 无论 `leading` 是 `true` 还是 `false`，前沿都会调用 `leadingEdge`，都会 `startTimer`
+    可知无论 `leading` 是 `true` 还是 `false`
+    * 前沿都会调用 `leadingEdge`，都会 `startTimer`
     * 只是为 `false` 时不调用 `func`
 
 3. `leading: true, trailing: false`：前沿调用
 
     ![leading: true, trailing: false](https://neptliang.github.io/img/in-post/post-lodash-debounce/leading.png)
 
-    可知
-    * 无论 `trailing` 是 `true` 还是 `false`，后沿也都会调用 `trailingEdge`，都会清空 `timerId`、`lastArgs`、`lastThis`
+    可知无论 `trailing` 是 `true` 还是 `false`
+    * 后沿也都会调用 `trailingEdge`，都会清空 `timerId`、`lastArgs`、`lastThis`
     * 只是为 `false` 时不调用 `func`
 
-# `0x04` 简析 `throttle` 
+  
+# `0x04` 思维导图（大概
+
+画时序图分析过后又画了个脑图整理了下流程，因为有合并子节点的操作，所以采用表格形式：
+
+![脑图](https://neptliang.github.io/img/in-post/post-lodash-debounce/mind-map.png)
+
+黄的是条件的分支，红绿蓝的是各步操作，灰的是所属场景的总结
+
+
+# `0x05` 简析 `throttle` 
 
 `debounce` 主流程理清之后，`throttle` 的逻辑也就比较清晰了，VS Code 中跟踪各个 `throttle` 相关的配置项可以知道，`throttle` 主要是增加了：
 
@@ -539,7 +549,8 @@ function debounce(func, wait, options) {
 1. 计算 `remainingWait` 时候取 `wait - timeSinceLastCall` 与 `maxWait - timeSinceLastInvoke` 中的较小者
 4. `debounced` 中添加 `timeSinceLastInvoke` 超时情况对应的处理逻辑：`if (isInvoking)` 中的 `if (maxing)` 部分
 
-# `0x05` 简析引入的 `isObject`、`root`
+
+# `0x06` 简析引入的 `isObject`、`root`
 
 ## `isObject`
 
@@ -592,7 +603,7 @@ function isObject(value) {
 一旦遇到满足条件的就返回之，否则返回一个新构建的函数里返回的 `this`
 
 
-# `0x06` 存在的疑问
+# `0x07` 存在的疑问
 
 一行行读过源码、画图分析过流程与行为，问过 New Bing 和 ChatGPT 3.5，还是有几个问题整不明白，故先在此记录下：
 
