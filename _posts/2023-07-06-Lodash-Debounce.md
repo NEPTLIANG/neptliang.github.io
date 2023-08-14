@@ -540,7 +540,14 @@ function debounce(func, wait, options) {
 黄的是条件的分支，红绿蓝的是各步操作，灰的是所属场景的总结
 
 
-# `0x05` 简析 `throttle` 
+# `0x05` 源码的思维导图
+
+最后画了个脑图整理了下源码的结构
+
+![真·脑图](https://neptliang.github.io/img/in-post/post-lodash-debounce/mind-map-code.png)
+
+
+# `0x06` 简析 `throttle` 
 
 `debounce` 主流程理清之后，`throttle` 的逻辑也就比较清晰了，VS Code 中跟踪各个 `throttle` 相关的配置项可以知道，`throttle` 主要是增加了：
 
@@ -550,7 +557,7 @@ function debounce(func, wait, options) {
 4. `debounced` 中添加 `timeSinceLastInvoke` 超时情况对应的处理逻辑：`if (isInvoking)` 中的 `if (maxing)` 部分
 
 
-# `0x06` 简析引入的 `isObject`、`root`
+# `0x07` 简析引入的 `isObject`、`root`
 
 ## `isObject`
 
@@ -603,7 +610,7 @@ function isObject(value) {
 一旦遇到满足条件的就返回之，否则返回一个新构建的函数里返回的 `this`
 
 
-# `0x07` 存在的疑问
+# `0x08` 存在的疑问
 
 一行行读过源码、画图分析过流程与行为，问过 New Bing 和 ChatGPT 3.5，还是有几个问题整不明白，故先在此记录下：
 
