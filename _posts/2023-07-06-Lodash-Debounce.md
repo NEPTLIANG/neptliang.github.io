@@ -489,7 +489,7 @@ function debounce(func, wait, options) {
 
 把源码读了一遍之后还是云里雾里的，于是照着源码大致画了个流程图
 
-![流程图](https://neptliang.github.io/img/in-post/post-lodash-debounce/flow.png)
+![流程图](https://neptliang.github.io/img/Article/lodash-debounce/flow.png)
 
 大概可以看出整个流程基本可以大致分为三个部分：
 
@@ -504,7 +504,7 @@ function debounce(func, wait, options) {
 
 1. `leading` 和 `trailing` 都为 `true`
 
-    ![leading 和 trailing 都为 true](https://neptliang.github.io/img/in-post/post-lodash-debounce/2true.png)
+    ![leading 和 trailing 都为 true](https://neptliang.github.io/img/Article/lodash-debounce/2true.png)
 
     可知
     * **连续触发**的时候
@@ -516,7 +516,7 @@ function debounce(func, wait, options) {
       
 2. `leading: false, trailing: true`：后沿调用，即默认行为
 
-    ![leading: false, trailing: true](https://neptliang.github.io/img/in-post/post-lodash-debounce/trailing.png)
+    ![leading: false, trailing: true](https://neptliang.github.io/img/Article/lodash-debounce/trailing.png)
 
     可知无论 `leading` 是 `true` 还是 `false`
     * 前沿都会调用 `leadingEdge`，都会 `startTimer`
@@ -524,7 +524,7 @@ function debounce(func, wait, options) {
 
 3. `leading: true, trailing: false`：前沿调用
 
-    ![leading: true, trailing: false](https://neptliang.github.io/img/in-post/post-lodash-debounce/leading.png)
+    ![leading: true, trailing: false](https://neptliang.github.io/img/Article/lodash-debounce/leading.png)
 
     可知无论 `trailing` 是 `true` 还是 `false`
     * 后沿也都会调用 `trailingEdge`，都会清空 `timerId`、`lastArgs`、`lastThis`
@@ -535,7 +535,7 @@ function debounce(func, wait, options) {
 
 画时序图分析过后又画了个脑图整理了下流程，因为有合并子节点的操作，所以采用表格形式：
 
-![脑图](https://neptliang.github.io/img/in-post/post-lodash-debounce/mind-map.png)
+![脑图](https://neptliang.github.io/img/Article/lodash-debounce/mind-map.png)
 
 黄的是条件的分支，红绿蓝的是各步操作，灰的是所属场景的总结
 
@@ -544,7 +544,7 @@ function debounce(func, wait, options) {
 
 最后画了个脑图整理了下源码的结构
 
-![真·脑图](https://neptliang.github.io/img/in-post/post-lodash-debounce/mind-map-code.png)
+![真·脑图](https://neptliang.github.io/img/Article/lodash-debounce/mind-map-code.png)
 
 
 # `0x06` 简析 `throttle` 
