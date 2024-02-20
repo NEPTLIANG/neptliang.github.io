@@ -20,24 +20,28 @@ tags:
 ---
 
 
-# 关于公共npm registry
+# 包和模块
+
+## 包和模块介绍
+
+### 关于公共npm registry
 
 公共npm registry是JavaScript程序包的数据库，每个程序包均包含软件和metadata。开源开发人员和公司的开发人员使用npm registry为整个社区或其组织成员提供包，并下载包以在自己的项目中使用
 
 ---
 
 
-# 关于包和模块
+### 关于包和模块
 
 npm registry包含包，其中很多也是Node模块，或者包含Node模块
 
-## 关于包
+#### 关于包
 
 **包**是package.json文件描述的一个文件或目录。软件包必须包含package.json文件才能发布到npm registry
 
 包对于用户或组织可以是unscoped（无范围）的或scoped（范围）的，并且scoped包可以是私有的也可以是公共的
 
-### 关于包装格式
+##### 关于包格式
 
 软件包是以下任意一种：
 
@@ -49,7 +53,7 @@ npm registry包含包，其中很多也是Node模块，或者包含Node模块
 * F) 具有latest标签满足(E)的`<name>`
 * g) clone后得到(a)的gitURL
 
-### npm包的git URL格式
+##### npm包的git URL格式
 
 用于npm包的Git URL可以通过以下方式格式化：
 
@@ -62,7 +66,7 @@ git+https://user@hostname/project/blah.git#commit-ish
 
 `commit-ish`可以是可以作为参数被提供给git checkout的任何标签、sha，或分支。默认commit-ish值为`master`
 
-## 关于模块
+#### 关于模块
 
 模块是在node_modules目录中可以被Node.js的`require()`函数加载的任何文件或目录
 
@@ -84,11 +88,13 @@ var req = require（'request'）
 ---
 
 
-# 本地下载和安装包
+## 从注册表中获取包
+
+### 本地下载和安装包
 
 如果你想让自己的模块依赖于一个包，您可以本地安装这个包，使用像Node.js的`require`的东西。这是`npm install`的默认行为
 
-## 安装unscoped（无作用域的？）包
+#### 安装unscoped（无作用域的？）包
 
 Unscoped包始终是公共的，这意味着任何人都可以搜索、下载和安装它们。要安装公共包，请在命令行上运行
 
@@ -101,7 +107,7 @@ npm install <package_name>
 **注意**：如果本地目录中没有package.json文件，则安装包的最新版本
 如果有package.json文件，npm将安装package.json中声明的满足semver规则（semantic versioning rule，语义化版本控制规则）的最新版本
 
-## 安装scoped（有作用域的？）公共包
+#### 安装scoped（有作用域的？）公共包
 
 只要在安装过程中引用了scope（作用域？）名称，任何人都可以下载并安装Scoped公共包：
 
@@ -109,7 +115,7 @@ npm install <package_name>
 npm install @scope/package-name
 ```
 
-## 安装私有包
+#### 安装私有包
 
 私有包只能由被授予对该包读取权限的人员下载和安装。由于私有包始终是scoped的（作用域的？），因此在安装过程中必须引用scope名称：
 
@@ -117,7 +123,7 @@ npm install @scope/package-name
 npm install @scope/private-package-name
 ```
 
-## 测试包安装
+#### 测试包安装
 
 为确认npm install工作正常，请在您的模块目录中，检查node_modules目录是否存在，并且其中包含您安装的包的目录：
 
@@ -125,13 +131,13 @@ npm install @scope/private-package-name
 ls node_modules
 ```
 
-## 安装的包的版本
+#### 安装的包的版本
 
 如果运行npm install的目录中有一个package.json文件，则npm安装package.json中满足语义化版本控制规则声明的包的最新版本
 
 如果没有package.json文件，则安装该包的最新版本
 
-## 安装带有dist-tags的包
+#### 安装带有dist-tags的包
 
 与npm publish一样，默认情况下`npm install <package_name>`会使用`latest`标记
 
@@ -141,7 +147,7 @@ ls node_modules
 npm install example-package@beta
 ```
 
-# 全局下载和安装包
+### 全局下载和安装包
 
 **提示**：如果您使用的是npm 5.2或更高版本，建议使用npx全局运行包
 
@@ -155,11 +161,27 @@ npm install -g <package_name>
 
 如果收到EACCES权限错误，则可能需要使用版本管理器重新安装npm或手动更改npm的默认目录
 
+---
+
+
+# npm CLI
+
+## 配置 npm
+
+### package.json
+
+#### private
+
+如果你在 package.json 中设置`"private": true`，那么 npm 将拒绝发布它。
+
+这是一种防止意外发布私有存储库的方法。如果你想确保给定的包只发布到特定的注册表（例如，内部注册表），然后使用下面描述的 `publishConfig` 字典在发布时覆盖 `registry` 配置参数。
+
+#### publishConfig
+
+略
+
 
 *//End of Article*
 
-**参考文献**：
-
-* [seceditor@MottoIN《WAF攻防研究之四个层次Bypass WAF》（mottoin.com/detail/359.html）](http://www.mottoin.com/detail/359.html)
 
 ![公众号二维码](https://neptliang.github.io/img/Article/WeChatBlog.png)
