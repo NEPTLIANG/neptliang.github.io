@@ -2396,6 +2396,40 @@ const d3 = makeDate(1, 3);
 然后，我们编写了一个具有兼容签名的函数实现。函数有一个*实现*签名，但是这个签名不能直接调用。即使我们编写了一个在必需的参数之后带有两个可选参数的函数，也不能用两个参数调用它！
 
 
+# 参考
+
+## Utility类型
+
+TypeScript 提供了多种 utility 类型来便利常见的类型转换。这些 utility globally 可用。
+
+### `Record<Keys, Type>`
+
+构造一个对象类型，其属性键为`Keys`，属性值为`Type`。该utility可用于将一种类型的属性映射到另一种类型。
+
+**例子**
+
+```ts
+interface CatInfo {
+  age: number;
+  breed: string;
+}
+
+type CatName = "miffy" | "boris" | "mordred";
+
+const cats: Record<CatName, CatInfo> = {
+  miffy: { age: 10, breed: "Persian" },
+  boris: { age: 5, breed: "Maine Coon" },
+  mordred: { age: 16, breed: "British Shorthair" },
+};
+
+cats.boris;
+```
+
+> ```
+> const cats: Record<CatName, CatInfo>
+> ```
+
+
 ---
 
 ***`//未完待xu`***
