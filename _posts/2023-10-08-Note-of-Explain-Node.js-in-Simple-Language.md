@@ -104,13 +104,13 @@ tags:
         if (process._exiting) return;
 
         if (tickDepth >= process.maxTickDepth)
-        maxTickWarn();
+            maxTickWarn();
 
         var tock = { callback: callback };
         if (process.domain) tock.domain = process.domain;
         nextTickQueue.push(tock);
         if (nextTickQueue.length) {
-        process._needTickCallback();
+            process._needTickCallback();
         }
     };
     ```
@@ -137,7 +137,7 @@ tags:
 
 ## 4.2 异步编程的优势与难点
 
->> 尝试对异步方法进行**try/catch操作只能捕获当次事件循环内的异常，对callback执行时抛出的异常将无能为力**
+>> **尝试对异步方法进行try/catch操作只能捕获当次事件循环内的异常，对callback执行时抛出的异常将无能为力**
 
 > **Node在处理异常上形成了一种约定，将异常作为回调函数的第一个实参传回，如果为空值，则表明异步调用没有异常抛出**：
 > ```JS
@@ -147,8 +147,8 @@ tags:
 > ```
 
 > **在我们自行编写的异步方法上，也需要去遵循这样一些原则：**
-> 1. 必须执行调用者传入的回调函数；
-> 2. 正确传递回异常供调用者判断。
+> 1. 必须执行调用者传入的**回调函数**；
+> 2. 正确传递回**异常**供调用者判断。
 
 > 在异步方法的编写中，另一个容易犯的错误是对用户传递的回调函数进行异常捕获，示例代码如下：
 > ```JS
@@ -165,24 +165,523 @@ tags:
 
 ## 4.3 异步编程解决方案
 
+>> 目前，异步编程的主要解决方案有如下3种。
+>> * 事件发布/订阅模式。
+>> * Promise/Deferred模式。
+>> * 流程控制库。
+
+### 4.3.1 事件发布/订阅模式
+
 >> 事件监听器模式是一种广泛用于异步编程的模式，是回调函数的事件化，**又称发布/订阅模式**。
 
-<!-- >> Node自身提供的events模块（[http://nodejs.org/docs/latest/api/events.html](http://nodejs.org/docs/latest/api/events.html)）是发布/订阅模式的一个简单实现，Node中部分模块都继承自它 -->
+>> Node自身提供的`events`模块（[http://nodejs.org/docs/latest/api/events.html](http://nodejs.org/docs/latest/api/events.html)）是发布/订阅模式的一个简单实现，Node中部分模块都继承自它
+
+#### 1．继承events模块
+
+>> 以下代码是Node中`Stream`对象继承`EventEmitter`的例子：
+>> ```JS
+>> var events = require('events');
+>> 
+>> function Stream() {
+>>     events.EventEmitter.call(this);
+>> }
+>> util.inherits(Stream, events.EventEmitter);
+>> ```
+>> Node在`util`模块中封装了继承的方法，所以此处可以很便利地调用。
+
+#### 2．利用事件队列解决雪崩问题
+
+>> 在事件订阅/发布模式中，通常也有一个`once()`方法，**通过它添加的侦听器只能执行一次**，在执行之后就会将它与事件的关联移除。这个特性常常可以帮助我们过滤一些重复性的事件响应。
 
 >> 雪崩问题，就是在高访问量、大并发量的情况下**缓存失效**的情景
 
-<!-- 2023/08/09发表想法
-每次once都入队一个回调，一旦emit就会执行全部回调并移除之：
-```JS
-> p.once('selected', console.log)
-> p.once('selected', console.log)
-> p.emit('selected', 1)
-1
-1
-> p.emit('selected', 1)
-``` -->
+>> 以下是一条数据库查询语句的调用：
+>> ```JS
+>> var select = function (callback) {
+>>     db.select("SQL", function (results) {
+>>         callback(results);
+>>     });
+>> };
+>> ```
+>>
+>> 如果站点刚好启动，这时缓存中是不存在数据的，而如果访问量巨大，同一句SQL会被发送到数据库中反复查询，会影响服务的整体性能。一种改进方案是添加一个状态锁，相关代码如下：
+>> ```JS
+>> var status = "ready";
+>> var select = function (callback) {
+>>     if (status === "ready") {
+>>         status = "pending";
+>>         db.select("SQL", function (results) {
+>>             status = "ready";
+>>             callback(results);
+>>         });
+>>     }
+>> };
+>> ```
+>>
+>> 但是在这种情景下，连续地多次调用`select()时`，只有第一次调用是生效的，后续的`select()`是没有数据服务的，这个时候可以引入事件队列，相关代码如下：
+>> ```JS
+>> var proxy = new events.EventEmitter();
+>> var status = "ready";
+>> var select = function (callback) {
+>>     proxy.once("selected", callback);
+>>     if (status === "ready") {
+>>         status = "pending";
+>>         db.select("SQL", function (results) {
+>>             proxy.emit("selected", results);
+>>             status = "ready";
+>>         });
+>>     }
+>> };
+>> ```
+>>
+>> 这里我们利用了`once()`方法，将所有请求的回调都压入事件队列中，利用其执行一次就会将监视器移除的特点，保证每一个回调只会被执行一次
+>> 
+> **2023/08/09发表想法**  
+>
+> 每次`once`都入队一个回调，一旦`emit`就会执行全部回调并移除之：
+> ```JS
+> > const p = new events.EventEmitter();
+> > p.once('selected', console.log)
+> > p.once('selected', console.log)
+> > p.emit('selected', 1)
+> 1
+> 1
+> > p.emit('selected', 1)
+> >
+> ```
 
-<!-- >> 这里我们利用了once()方法，将所有请求的回调都压入事件队列中，利用其执行一次就会将监视器移除的特点，保证每一个回调只会被执行一次 -->
+#### 3．多异步之间的协作方案
+
+>> 由于多个异步场景中回调函数的执行并不能保证顺序，且回调函数之间互相没有任何交集，所以需要借助一个第三方函数和第三方变量来处理异步协作的结果。通常，我们把这个用于检测次数的变量叫做**哨兵变量**。
+
+>> 你也许已经想到利用偏函数来处理哨兵变量和第三方函数的关系了，相关代码如下：
+>> ```JS
+>> var after = function (times, callback) {
+>>     var count = 0, results = {};
+>>     return function (key, value) {
+>>         results[key] = value;
+>>         count++;
+>>         if (count === times) {
+>>             callback(results);
+>>         }
+>>     };
+>> };
+>> 
+>> var done = after(times, render);
+>> ```
+>>
+>> 上述方案实现了多对一的目的。如果业务继续增长，我们依然可以继续利用发布/订阅方式来完成多对多的方案，相关代码如下：
+>> ```JS
+>> var emitter = new events.Emitter();
+>> var done = after(times, render);
+>> 
+>> emitter.on("done", done);
+>> emitter.on("done", other);
+>> 
+>> fs.readFile(template_path, "utf8", function (err, template) {
+>>     emitter.emit("done", "template", template);
+>> });
+>> db.query(sql, function (err, data) {
+>>     emitter.emit("done", "data", data);
+>> });
+>> l10n.get(function (err, resources) {
+>>     emitter.emit("done", "resources", resources);
+>> });
+>> ```
+>> 这种方案结合了前者用简单的偏函数完成多对一的收敛和事件订阅/发布模式中一对多的发散。
+
+>> 在上面的方法中，有一个令调用者不那么舒服的问题，那就是调用者要去准备这个`done()`函数，以及在回调函数中需要从结果中把数据一个一个提取出来，再进行处理。另一个方案则是来自笔者自己写的EventProxy模块，它是对事件订阅/发布模式的扩充，可以自由订阅组合事件。
+
+### 4.3.2 Promise/Deferred模式
+
+>> 使用事件的方式时，执行流程需要被预先设定。即便是分支，也需要预先设定，这是由发布/订阅模式的运行机制所决定的。下面为普通的Ajax调用：
+>> ```JS
+>> $.get('/api', {
+>>     success: onSuccess,
+>>     error: onError,
+>>     complete: onComplete
+>> });
+>> ```
+
+>> 是否有一种先执行异步调用，延迟传递处理的方式呢？答案是Promise/Deferred模式。Promise/Deferred模式在JavaScript框架中最早出现于Dojo的代码中，被广为所知则来自于jQuery 1.5版本，该版本几乎重写了Ajax部分，使得调用Ajax时可以通过如下的形式进行：
+>> ```JS
+>> $.get('/api')
+>>     .success(onSuccess)
+>>     .error(onError)
+>>     .complete(onComplete);
+>> ```
+
+>> **在原始的API中，一个事件只能处理一个回调，而通过Deferred对象，可以对事件加入任意的业务处理逻辑**，示例代码如下：
+>> ```JS
+>> $.get('/api')
+>>     .success(onSuccess1)
+>>     .success(onSuccess2);
+>> ```
+
+>> CommonJS草案目前已经抽象出了Promises/A、Promises/B、Promises/D这样典型的异步Promise/Deferred模型
+
+>> 一旦出现深度的嵌套，就会让编程的体验变得不愉快，而Promise/Deferred模式在一定程度上**缓解**了这个问题
+
+>> 这里我们将着重介绍Promises/A来以点代面介绍Promise/Deferred模式
+
+#### 1. Promises/A
+
+>> Promises/A提议对单个异步操作做出了这样的抽象定义，具体如下所示。
+>> * Promise操作**只会处在3种状态的一种**：未完成态、完成态和失败态。
+>> * Promise的**状态只会出现从未完成态向完成态或失败态转化**，不能逆反。完成态和失败态不能互相转化。
+>> * Promise的**状态一旦转化，将不能被更改**。
+
+>> 在API的定义上，Promises/A提议是比较简单的。一个Promise对象只要具备`then()`方法即可。但是对于`then()`方法，有以下简单的要求。
+>> * 接受完成态、错误态的回调方法。在操作完成或出现错误时，将会调用对应方法。
+>> * 可选地支持progress事件回调作为第三个方法。
+>> * `then()`方法只接受`function`对象，其余对象将被忽略。
+>> * `then()`方法**继续返回Promise对象**，以实现链式调用。
+
+>> 为了演示Promises/A提议，这里我们尝试通过继承Node的`events`模块来完成一个简单的实现，相关代码如下：
+>> ```JS
+>> var Promise = function () {
+>>     EventEmitter.call(this);
+>> };
+>> util.inherits(Promise, EventEmitter);
+>> 
+>> Promise.prototype.then = function (fulfilledHandler, errorHandler, progressHandler) {
+>>     if (typeof fulfilledHandler === 'function') {
+>>         // 利用once()方法，保证成功回调只执行一次
+>>         this.once('success', fulfilledHandler);
+>>     }
+>>     if (typeof errorHandler === 'function') {
+>>         // 利用once()方法，保证异常回调只执行一次
+>>         this.once('error', errorHandler);
+>>     }
+>>     if (typeof progressHandler === 'function') {
+>>         this.on('progress', progressHandler);
+>>     }
+>>     return this;
+>> };
+>> ```
+>> 这里看到`then()`方法所做的事情是将回调函数存放起来。为了完成整个流程，还需要触发执行这些回调函数的地方，实现这些功能的对象通常被称为Deferred，即延迟对象，示例代码如下：
+>> ```JS
+>> var Deferred = function () {
+>>     this.state = 'unfulfilled';
+>>     this.promise = new Promise();
+>> };
+>> 
+>> Deferred.prototype.resolve = function (obj) {
+>>     this.state = 'fulfilled';
+>>     this.promise.emit('success', obj);
+>> };
+>> 
+>> Deferred.prototype.reject = function (err) {
+>>     this.state = 'failed';
+>>     this.promise.emit('error', err);
+>> };
+>> 
+>> Deferred.prototype.progress = function (data) {
+>>     this.promise.emit('progress', data);
+>> };
+>> ```
+>>
+>> 这里的状态和方法之间的对应关系如图4-5所示。利用Promises/A提议的模式，我们可以对一个典型的响应对象进行封装，相关代码如下：
+>> ```JS
+>> res.setEncoding('utf8');
+>> res.on('data', function (chunk) {
+>>     console.log('BODY: ' + chunk);
+>> });
+>> res.on('end', function () {
+>>     // Done
+>> });
+>> res.on('error', function (err) {
+>>     // Error
+>> });
+>> 上述代码可以转换为如下的简略形式：
+>> res.then(function () {
+>>     // Done
+>> }, function (err) {
+>>     // Error
+>> }, function (chunk) {
+>>     console.log('BODY: ' + chunk);
+>> });
+>> ```
+>>
+>> 要实现如此简单的API，只需要简单地改造一下即可，相关代码如下：
+>> ```JS
+>> var promisify = function (res) {
+>>     var deferred = new Deferred();
+>>     var result = '';
+>>     res.on('data', function (chunk) {
+>>         result += chunk;
+>>         deferred.progress(chunk);
+>>     });
+>>     res.on('end', function () {
+>>         deferred.resolve(result);
+>>     });
+>>     res.on('error', function (err) {
+>>         deferred.reject(err);
+>>     });
+>>     return deferred.promise;
+>> };
+>> ```
+>> 如此就得到了简单的结果。这里返回`deferred.promise`的目的是为了不让外部程序调用`resolve()`和`reject()`方法，更改内部状态的行为交由定义者处理。下面为定义好Promise后的调用示例：
+>> ```JS
+>> promisify(res).then(function () {
+>>     // Done
+>> }, function (err) {
+>>     // Error
+>> }, function (chunk) {
+>>     // progress
+>>     console.log('BODY: ' + chunk);
+>> });
+>> ```
+
+>> Deferred主要是用于内部，用于**维护异步模型的状态**；Promise则作用于外部，**通过`then()`方法暴露给外部以添加自定义逻辑**
+
+>> 与事件发布/订阅模式相比，Promise/Deferred模式的API接口和抽象模型都十分简洁。从图4-6中也可以看出，它将业务中不可变的部分封装在了Deferred中，将可变的部分交给了Promise
+
+>> Promise是高级接口，事件是低级接口。低级接口可以构成更多更复杂的场景，高级接口一旦定义，不太容易变化，不再有低级接口的灵活性，但对于解决典型问题非常有效
+
+>> Promises/A的模型抽象在几种Promise提议中相对简洁
+
+#### 2. Promise中的多异步协作
+
+>> 当我们需要处理多个异步调用时，又该如何处理呢？
+>>
+>> 类似于EventProxy，这里给出了一个简单的原型实现，相关代码如下：
+>> ```JS
+>> Deferred.prototype.all = function (promises) {
+>>     var count = promises.length;
+>>     var that = this;
+>>     var results = [];
+>>     promises.forEach(function (promise, i) {
+>>         promise.then(function (data) {
+>>             count--;
+>>             results[i] = data;
+>>             if (count === 0) {
+>>                 that.resolve(results);
+>>             }
+>>         }, function (err) {
+>>             that.reject(err);
+>>         });
+>>     });
+>>     return this.promise;
+>> };
+>> ```
+
+#### 3. Promise的进阶知识
+
+>> 在有一组纯异步的API，为了完成一串事情，我们的代码大致如下：
+>> ```JS
+>> obj.api1(function (value1) {
+>>     obj.api2(value1, function (value2) {
+>>         obj.api3(value2, function (value3) {
+>>             obj.api4(value3, function (value4) {
+>>                 callback(value4);
+>>             });
+>>         });
+>>     });
+>> });
+>> ```
+>
+>> 对于喜欢利用事件的开发者，我们展开后的代码又将会是怎样的情况呢？具体如下所示：
+>> ```JS
+>> var emitter = new event.Emitter();
+>> 
+>> emitter.on("step1", function () {
+>>     obj.api1(function (value1) {
+>>         emitter.emit("step2", value1);
+>>     });
+>> });
+>> 
+>> emitter.on("step2", function (value1) {
+>>     obj.api2(value1, function (value2) {
+>>         emitter.emit("step3", value2);
+>>     });
+>> });
+>> 
+>> emitter.on("step3", function (value2) {
+>>     obj.api3(value2, function (value3) {
+>>         emitter.emit("step4", value3);
+>>     });
+>> });
+>> 
+>> emitter.on("step4", function (value3) {
+>>     obj.api4(value3, function (value4) {
+>>         callback(value4);
+>>     });
+>> });
+>> emitter.emit("step1");
+>> ```
+>> 利用事件展开后的效果变得越来越糟糕了。与纯粹嵌套相比，代码量明显增加了
+>
+>> 理想的编程体验应当是前一个的调用结果作为下一个调用的开始，是传说中的链式调用，相关代码如下：
+>> ```JS
+>> promise()
+>>     .then(obj.api1)
+>>     .then(obj.api2)
+>>     .then(obj.api3)
+>>     .then(obj.api4)
+>>     .then(function (value4) {
+>>         // Do something with value4
+>>     }, function (error) {
+>>         // Handle any error from step1 through step4
+>>     })
+>>     .done();
+>> ```
+>> 尝试改造一下代码以实现链式调用，具体如下所示：
+>> ```JS
+>> var Deferred = function () {
+>>     this.promise = new Promise();
+>> };
+>> 
+>> // 完成态
+>> Deferred.prototype.resolve = function (obj) {
+>>     var promise = this.promise;
+>>     var handler;
+>>     while ((handler = promise.queue.shift())) {
+>>         if (handler && handler.fulfilled) {
+>>             var ret = handler.fulfilled(obj);
+>>             if (ret && ret.isPromise) {
+>>                 ret.queue = promise.queue;
+>>                 this.promise = ret;
+>>                 return;
+>>             }
+>>         }
+>>     }
+>> };
+>> 
+>> // 失败态
+>> Deferred.prototype.reject = function (err) {
+>>     var promise = this.promise;
+>>     var handler;
+>>     while ((handler = promise.queue.shift())) {
+>>         if (handler && handler.error) {
+>>             var ret = handler.error(err);
+>>             if (ret && ret.isPromise) {
+>>                 ret.queue = promise.queue;
+>>                 this.promise = ret;
+>>                 return;
+>>             }
+>>         }
+>>     }
+>> };
+>> 
+>> // 生成回调函数
+>> Deferred.prototype.callback = function () {
+>>     var that = this;
+>>     return function (err, file) {
+>>         if (err) {
+>>             return that.reject(err);
+>>         }
+>>         that.resolve(file);
+>>     };
+>> };
+>> 
+>> var Promise = function () {
+>>     // 队列用于存储待执行的回调函数
+>>     this.queue = [];
+>>     this.isPromise = true;
+>> };
+>> 
+>> Promise.prototype.then = function (fulfilledHandler, errorHandler, progressHandler) {
+>>     var handler = {};
+>>     if (typeof fulfilledHandler === 'function') {
+>>         handler.fulfilled = fulfilledHandler;
+>>     }
+>>     if (typeof errorHandler === 'function') {
+>>         handler.error = errorHandler;
+>>     }
+>>     this.queue.push(handler);
+>>     return this;
+>> };
+>> ```
+>
+>> 要让Promise支持链式执行，主要通过以下两个步骤。
+>> 1. 将所有的回调都存到队列中。
+>> 2. Promise完成时，逐个执行回调，一旦检测到返回了新的Promise对象，停止执行，然后将当前Deferred对象的promise引用改变为新的Promise对象，并将队列中余下的回调转交给它。
+>
+>> 这里的代码主要用于研究Promise的实现原理。在更多细节的优化方面，Q或者when等Promise库做得更好，实际应用时请采用这些成熟库
+
+### 4.3.3 流程控制库
+
+>> 前面叙述了最为主流的模式——事件发布/订阅模式和Promise/Deferred模式，这些是经典的模式或者是写进规范里的解决方案，但一旦涉及模式或者规范，就需要为它们做较多的准备工作
+
+>> 这一节将会介绍一些非模式化的应用，虽非规范，但更灵活
+
+>> 除了事件和Promise外，还有一类方法是需要手工调用才能持续执行后续调用的，我们将此类方法叫做尾触发，常见的关键词是next。
+
+>> 尾触发目前应用最多的地方是Connect的中间件
+
+>> 先看一下Connect的API暴露方式，相关代码如下：
+>> ```JS
+>> var app = connect();
+>> // Middleware
+>> app.use(connect.staticCache());
+>> app.use(connect.static(__dirname + '/public'));
+>> app.use(connect.cookieParser());
+>> app.use(connect.session());
+>> app.use(connect.query());
+>> app.use(connect.bodyParser());
+>> app.use(connect.csrf());
+>> app.listen(3001);
+>> ```
+>> 在通过`use()`方法注册好一系列中间件后，监听端口上的请求
+
+>> 最简单的中间件如下：
+>> ```JS
+>> function (req, res, next) {
+>>     // 中间件
+>> }
+>> ```
+>>
+>> 每个中间件传递请求对象、响应对象和尾触发函数，通过队列形成一个处理流
+
+>> 中间件机制使得在处理网络请求时，可以像面向切面编程一样进行过滤、验证、日志等功能，而不与具体业务逻辑产生关联，以致产生耦合。
+
+>> 下面我们来看Connect的核心实现，相关代码如下：
+>> ```JS
+>> function createServer() {
+>>     function app(req, res){ app.handle(req, res); }
+>>     utils.merge(app, proto);
+>>     utils.merge(app, EventEmitter.prototype);
+>>     app.route = '/';
+>>     app.stack = [];
+>>     for (var i = 0; i < arguments.length; ++i) {
+>>         app.use(arguments[i]);
+>>     }
+>>     return app;
+>> };
+>> ```
+>> 真正的核心代码是`app.stack = []；`这句。`stack`属性是这个服务器内部维护的中间件队列。通过调用`use()`方法我们可以将中间件放进队列中
+
+>> 下面的代码为`use()`方法的重要部分：
+>> ```JS
+>> app.use = function(route, fn){
+>>     // some code
+>>     this.stack.push({ route: route, handle: fn });
+>> 
+>>     return this;
+>> };
+>> ```
+
+>> 回到`app.handle()`方法，每一个监听到的网络请求都将从这里开始处理。该方法的代码如下：
+>> ```JS
+>> app.handle = function(req, res, out) {
+>>     // some code
+>>     next();
+>> };
+>> ```
+
+>> 原始的`next()`方法较为复杂，下面是简化后的内容，其原理十分简单，取出队列中的中间件并执行，同时传入当前方法以实现递归调用，达到持续触发的目的：
+>> ```JS
+>> function next(err) {
+>>     // some code
+>>     // next callback
+>>     layer = stack[index++];
+>> 
+>>     layer.handle(req, res, next);
+>> }
+>> ```
+
+>> 如果每个步骤都采用异步来完成，实际上只是串行化的处理，没办法通过并行的异步调用来提升业务的处理效率。流式处理可以将一些串行的逻辑扁平化，但是并行逻辑处理还是需要搭配事件或者Promise完成的
 
 ## 4.4 异步并发控制
 
@@ -216,30 +715,64 @@ tags:
 
 >> 前面我们提及的`--max-old-space-size`命令行参数可以用于设置**老生代**内存空间的最大值，`--max-new-space-size`命令行参数则用于设置**新生代**内存空间的大小的
 
->> V8使用的内存没有办法根据使用情况自动扩充
+>> V8使用的内存**没有办法**根据使用情况自动扩充
+
+>> **新生代**中的对象主要通过**Scavenge算法**进行垃圾回收。
+
+>> 当一个对象**经过多次复制依然存活**时，它将会被认为是生命周期较长的对象。这种较长生命周期的对象随后会被**移动到老生代中，采用新的算法进行管理**。对象从新生代中移动到老生代中的过程称为晋升。
+
+>> 对象从From空间中复制到To空间时，会检查它的内存地址来判断这个对象是否已经经历过一次Scavenge回收。如果已经经历过了，会将该对象从From空间复制到老生代空间中，如果没有，则复制到To空间中。
+
+>> 另一个判断条件是To空间的内存占用比。当要从From空间复制一个对象到To空间时，如果**To空间已经使用了超过25%**，则这个对象直接晋升到老生代空间中
+
+>> 设置25%这个限制值的原因是**当这次Scavenge回收完成后，这个To空间将变成From空间，接下来的内存分配将在这个空间中进行。如果占比过高，会影响后续的内存分配**。
+
+>> 对于老生代中的对象，由于**存活对象占较大比重**，再采用Scavenge的方式会有两个问题：一个是存活对象较多，**复制存活对象的效率将会很低**；另一个问题依然是**浪费一半空间**的问题。这两个问题导致**应对生命周期较长的对象时**Scavenge会显得捉襟见肘。
+
+>> V8在**老生代**中主要采用了**Mark-Sweep**和**Mark-Compact**相结合的方式进行垃圾回收
+
+>> Mark-Sweep在标记阶段遍历堆中的所有对象，并**标记活着的对象**，在随后的清除阶段中，只**清除没有被标记的对象**。
+
+>> Scavenge中只复制活着的对象，而Mark-Sweep只清理死亡对象。**活对象在**新生代**中只占较小部分，**死对象**在**老生代**中只占较小部分，这是两种回收方式能高效处理的原因
+
+>> **Mark-Sweep最大的问题**是在进行一次标记清除回收后，**内存空间会出现不连续的状态**。这种内存碎片会对后续的内存分配造成问题，因为很可能出现需要分配一个大对象的情况，这时所有的碎片空间都无法完成此次分配，就会提前触发垃圾回收
+
+>> **Mark-Compact**是标记整理的意思，是在Mark-Sweep的基础上演变而来的。它们的差别在于**对象在标记为死亡后，在整理的过程中，将活着的对象往一端移动**
+
+>> 由于Mark-Compact需要移动对象，所以它的**执行速度不可能很快**
+
+>> **V8主要使用Mark-Sweep，在空间不足以对从新生代中晋升过来的对象进行分配时才使用Mark-Compact**
 
 >> 为了避免出现JavaScript应用逻辑与垃圾回收器看到的不一致的情况，**垃圾回收的3种基本算法都需要将应用逻辑暂停下来**，待执行完垃圾回收后再恢复执行应用逻辑，这种行为被称为“全停顿”（stop-the-world）。
 
+>> **为了降低全堆垃圾回收带来的停顿时间**，V8先从标记阶段入手，将原本要一口气停顿完成的动作改为**增量标记（incremental marking）**
+
 >> 垃圾回收与应用逻辑交替执行直到标记阶段完成
+
+>> V8后续还引入了延迟清理（lazy sweeping）与增量式整理（incremental compaction），让清理与整理动作也变成增量式的。同时还计划引入并行标记与并行清理，进一步利用多核性能降低每次停顿的时间。
 
 ## 5.2 高效使用内存
 
 >> **在V8中通过delete删除对象的属性有可能干扰V8的优化，所以通过赋值方式解除引用更好**
 
->> 在正常的JavaScript执行中，无法立即回收的内存有**闭包**和**全局变量**引用这两种情况。
+>> 在正常的JavaScript执行中，**无法立即回收的内存**有**闭包**和**全局变量引用**这两种情况。由于V8的内存限制，要十分小心此类变量是否无限制地增加，因为它**会导致老生代中的对象增多**。
 
 ## 5.3 内存指标
 
->> `Buffer`对象不同于其他对象，它不经过V8的内存分配机制，所以也不会有堆内存的大小限制。这意味着利用堆外内存可以**突破内存限制的问题**。
+>> 通过`process.memoryUsage()`的结果可以看到，堆中的内存用量总是小于进程的常驻内存用量，这意味着Node中的内存使用并非都是通过V8进行分配的。我们将那些**不是通过V8分配的内存**称为**堆外内存**。
+
+>> `Buffer`对象不同于其他对象，它不经过V8的内存分配机制，所以也不会有堆内存的大小限制。这意味着**利用堆外内存**可以**突破内存限制的问题**。
 
 >> 从上面的介绍可以得知，Node的内存构成主要**由通过V8进行分配的部分**和**Node自行分配的部分**。受V8的垃圾回收限制的主要是V8的堆内存。
 
 ## 5.4 内存泄漏
 
-> 通常，造成内存泄漏的原因有如下几个。
-> * 缓存。
-> * 队列消费不及时。
-> * 作用域未释放。
+>> 尽管内存泄漏的情况不尽相同，但其实质只有一个，那就是**应当回收的对象**出现意外而**没有被回收**，变成了**常驻在老生代中**的对象。
+
+>> 通常，造成内存泄漏的原因有如下几个。
+>> * 缓存。
+>> * 队列消费不及时。
+>> * 作用域未释放。
 
 >> 缓存中存储的键越多，长期存活的对象也就越多，**这将导致垃圾回收在进行扫描和整理时，对这些对象做无用功**。
 
@@ -270,6 +803,33 @@ tags:
 
 >> 深度的解决方案应该是**监控队列的长度**，一旦堆积，应当通过监控系统产生报警并通知相关人员。另一个解决方案是**任意异步调用都应该包含超时机制**，一旦在限定的时间内未完成响应，通过回调函数传递超时异常
 
+## 5.5 内存泄漏排查
+
+>> 现在已经有许多工具用于定位Node应用的内存泄漏，下面是一些常见的工具。
+>> *  **v8-profiler**。由Danny Coates提供，它可以用于对V8堆内存抓取快照和对CPU进行分析，但该项目已经有3年没有维护了。
+>> *  **node-heapdump**。这是Node核心贡献者之一Ben Noordhuis编写的模块，它允许对V8堆内存抓取快照，用于事后分析。
+>> *  **node-mtrace**。由Jimb Esser提供，它使用了GCC的mtrace工具来分析堆的使用。
+>> *  **dtrace**。在Joyent的SmartOS系统上，有完善的dtrace工具用来分析内存泄漏。
+>> *  **node-memwatch**。来自Mozilla的Lloyd Hilaiel贡献的模块，采用WTFPL许可发布。
+
+### 5.5.1 node-heapdump
+
+>> 通过在开发者工具的面板中查看内存分布，我们可以找到泄漏的数据，然后根据这些信息找到造成泄漏的代码
+
+### 5.5.2 node-memwatch
+
+#### 1. stats事件
+
+>> 在进程中使用node-memwatch之后，每次进行全堆垃圾回收时，将会触发一次stats事件，这个事件将会传递**内存的统计信息**。
+
+#### 2. leak事件
+
+>> 如果经过连续5次垃圾回收后，内存仍然没有被释放，这意味着**有内存泄漏的产生**，node-memwatch会出发一个leak事件。
+
+#### 3．堆内存比较
+
+>> node-memwatch提供了抓取快照和比较快照的功能，它能够**比较堆上对象的名称和分配数量，从而找出导致内存泄漏的元凶**。
+
 ## 5.6 大内存应用
 
 >> 由于V8的内存限制，我们无法通过`fs.readFile()`和`fs.writeFile()`直接进行大文件的操作，而**改用`fs.createReadStream()`和`fs.createWriteStream()`方法通过流的方式实现对大文件的操作**。
@@ -281,14 +841,29 @@ tags:
 
 ## 6.1 `Buffer`结构
 
->> `Buffer`对象的内存分配不是在V8的堆内存中，而是在Node的C++层面实现内存的申请的。
+>> `Buffer`对象的内存分配不是在V8的堆内存中，而是在Node的C++层面实现内存的申请的。因为处理大量的字节数据不能采用需要一点内存就向操作系统申请一点内存的方式，这可能造成大量的内存申请的系统调用，对操作系统有一定压力
+
+>> Node在内存的使用上应用的是在C++层面申请内存、在JavaScript中分配内存的策略
 
 >> 为了高效地使用申请来的内存，**Node采用了slab分配机制**。slab是一种**动态内存管理机制**
 
-> slab具有如下3种状态。
-> * **full**：完全分配状态。
-> * **partial**：部分分配状态。
-> * **empty**：没有被分配状态。
+>> slab具有如下3种状态。
+>> * **full**：完全分配状态。
+>> * **partial**：部分分配状态。
+>> * **empty**：没有被分配状态。
+
+>> Node以8 KB为界限来区分`Buffer`是大对象还是小对象：
+>> ```JS
+>> Buffer.poolSize = 8 * 1024;
+>> ```
+
+### 1．分配小Buffer对象
+
+>> 如果指定`Buffer`的大小少于8 KB, Node会按照小对象的方式进行分配。`Buffer`的分配过程中主要使用一个局部变量pool作为中间处理对象，处于分配状态的slab单元都指向它。
+
+### 2．分配大Buffer对象
+
+>> 如果需要超过8 KB的`Buffer`对象，将会直接分配一个`SlowBuffer`对象作为slab单元，这个slab单元将会被这个大Buffer对象独占。
 
 >> `SlowBuffer`类是在C++中定义的，虽然引用buffer模块可以访问到它，但是不推荐直接操作它，而是用`Buffer`替代
 
@@ -317,7 +892,7 @@ tags:
 > buf.toString([encoding], [start], [end])
 > ```
 
->> `Buffer`提供了一个i`sEncoding()`函数来**判断编码是否支持转换**
+>> `Buffer`提供了一个`isEncoding()`函数来**判断编码是否支持转换**
 
 >> GBK、GB2312和BIG-5编码都不在支持的行列中。对于不支持的编码类型，可以借助Node生态圈中的模块完成转换。`iconv`和`iconv-lite`两个模块可以支持更多的编码类型转换，包括Windows 125系列、ISO-8859系列、IBM/DOS代码页系列、Macintosh系列、KOI8系列，以及Latin1、US-ASCII，也支持宽字节编码GBK和GB2312
 
@@ -371,14 +946,26 @@ tags:
 
 ## 7.1 构建TCP服务
 
-> 我们通过`net.createServer(listener)`即可创建一个TCP服务器，listener是连接事件`connection`的侦听器，也可以采用如下的方式进行侦听：
-> ```JS
-> var server = net.createServer();
-> server.on('connection', function (socket) {
->     // 新的连接
-> });
-> server.listen(8124);
-> ```
+>> 可以开始创建一个TCP服务器端来接受网络请求，代码如下：
+>> ```JS
+>> var net = require('net');
+>> 
+>> var server = net.createServer(function (socket) {
+>>     // 新的连接
+>>     socket.on('data', function (data) {
+>>     socket.write("你好");
+>>     });
+>> 
+>>     socket.on('end', function () {
+>>     console.log(’连接断开’);
+>>     });
+>>     socket.write("欢迎光临《深入浅出Node.js》示例：\n");
+>> });
+>> 
+>> server.listen(8124, function () {
+>>     console.log('server bound');
+>> });
+>> ```
 
 > 对于通过`net.createServer()`创建的服务器而言，它是一个`EventEmitter`实例，**它的自定义事件有如下几种**。
 > * `listening`：在调用 **`server.listen()`** 绑定端口或者Domain Socket后触发
@@ -475,7 +1062,19 @@ tags:
 
 >> HTTP响应封装了对底层连接的写操作，可以将其看成一个可写的流对象。它影响**响应报文头部**信息的API为`res.setHeader()`和`res.writeHead()`。
 
+>> 我们可以调用`setHeader`进行多次设置，但**只有调用`writeHead`后，报头才会写入到连接中**。
+
+>> **http模块会自动帮你设置一些头信息，如下所示：**
+>> ```HTTP
+>> < Date: Sat, 06 Apr 2013 08:01:44 GMT
+>> < Connection: keep-alive
+>> < Transfer-Encoding: chunked
+>> <
+>> ```
+
 >> **报文体**部分则是调用`res.write()`和`res.end()`方法实现
+
+>> `res.end()`会先调用`write()`发送数据，然后发送信号告知服务器这次响应结束
 
 >> 无论服务器端在处理业务逻辑时是否发生异常，**务必在结束时调用`res.end()`结束请求**
 
@@ -510,7 +1109,7 @@ tags:
 > }
 > ```
 
->> 一旦请求量过大，连接限制将会限制服务性能。
+>> 如果你在服务器端通过`ClientRequest`调用网络中的其他HTTP服务，记得关注**代理对象对网络请求的限制**。一旦请求量过大，连接限制将会限制服务性能。
 
 > 既可以自行构造代理对象，代码如下：
 > ```JS
@@ -632,7 +1231,7 @@ tags:
 > ```sh
 > $ openssl genrsa -out ca.key 1024
 > $ openssl req -new -key ca.key -out ca.csr
-> $ openssl x509-req -in ca.csr -signkey ca.key -out ca.crt
+> $ openssl x509 -req -in ca.csr -signkey ca.key -out ca.crt
 > ```
 
 > 如下是生成CSR文件所用的命令：
@@ -644,7 +1243,7 @@ tags:
 
 > 最终颁发一个带有CA签名的证书，如下所示：
 > ```sh
-> $ openssl x509-req -CA ca.crt -CAkey ca.key -CAcreateserial -in server.csr -out server.crt
+> $ openssl x509 -req -CA ca.crt -CAkey ca.key -CAcreateserial -in server.csr -out server.crt
 > ```
 
 >> 如果是知名的CA机构，它们的证书一般预装在浏览器中。
@@ -814,6 +1413,8 @@ tags:
 > // }
 > ```
 > **业务的判断一定要检查值是数组还是字符串，否则可能出现`TypeError`异常的情况**
+
+### 8.1.4 Cookie
 
 >> HTTP是一个无状态的协议，现实中的业务却是需要一定的状态的
 
