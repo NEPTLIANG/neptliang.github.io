@@ -17,7 +17,7 @@ tags:
 
 复杂的地方主要是 `debounce` 的主流程部分，故 `cancel`、`flush`、`pending` 以及 `throttle` 部分大部分都略过
 
-完整源码可参考[该 PR：https://github.com/NEPTLIANG/lodash-source-code-interpretation/pull/1/files](https://github.com/NEPTLIANG/lodash-source-code-interpretation/pull/1/files)
+完整源码与注释可参考[该 PR：https://github.com/NEPTLIANG/lodash-source-code-interpretation/pull/1/files](https://github.com/NEPTLIANG/lodash-source-code-interpretation/pull/1/files)
 
 
 # `0x01` 源码及注释 
@@ -347,7 +347,7 @@ function debounce(func, wait, options) {
     }
     /* 如果 options.trailing 没被指定为 falsy 值，或 lastArgs 为空，则清空
       传给被封装函数的参数、封装后函数的 this 指向，并返回之前的被封装函数 func 的调用结果 */
-    lastArgs = lastThis = undefined
+    lastArgs = lastThis = undefined   //? 疑问：为什么 trailingEdge 一定要清除 lastArgs 而 leadingEdge 只有执行 func 才清除
     return result
   }
 ```
@@ -512,22 +512,22 @@ function debounce(func, wait, options) {
       * 中间的触发全部略过、定时器到期回调也全是 `setTimeout` 到时间戳到期
     * **只触发一次**的时候，
       * **只有前沿会调用 `func`**
-      * 后沿因为前沿清空了 `lastArgs` 不再调用，不知是何用意
+      * 后沿因为前沿清空了 `lastArgs` 不再调用，不知是何用意，看起来似乎是为了避免用同一批参数两次调用 `func`
       
 2. `leading: false, trailing: true`：后沿调用，即默认行为
 
     ![leading: false, trailing: true](https://neptliang.github.io/img/Article/lodash-debounce/trailing.png)
 
-    可知无论 `leading` 是 `true` 还是 `false`
-    * 前沿都会调用 `leadingEdge`，都会 `startTimer`
+    可知
+    * 无论 `leading` 是 `true` 还是 `false`，前沿都会调用 `leadingEdge`，都会 `startTimer`
     * 只是为 `false` 时不调用 `func`
 
 3. `leading: true, trailing: false`：前沿调用
 
     ![leading: true, trailing: false](https://neptliang.github.io/img/Article/lodash-debounce/leading.png)
 
-    可知无论 `trailing` 是 `true` 还是 `false`
-    * 后沿也都会调用 `trailingEdge`，都会清空 `timerId`、`lastArgs`、`lastThis`
+    可知
+    * 无论 `trailing` 是 `true` 还是 `false`，后沿也都会调用 `trailingEdge`，都会清空 `timerId`、`lastArgs`、`lastThis`
     * 只是为 `false` 时不调用 `func`
 
   

@@ -13,7 +13,7 @@ tags:
 ---
 
 
-# # `0x00` 背景
+# `0x00` 背景
 
 *`/*` 在 VirtualBox 装了 Arch + KDE，但是不知道为什么 VBox 增强工具的根据窗口大小自动设置虚拟机分辨率的功能没有效果（虽然把 Machine-Settings-Display-Screen-Graphics Controller 改成另外两个选项之后可以，但是这么改又会闪屏），所以谷歌了半天怎么手动设置分辨率，然后官方维基的说明又有点简略，故在此整理补充一下官方维基的内容 `*/`*
 
