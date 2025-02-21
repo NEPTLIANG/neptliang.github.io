@@ -1428,6 +1428,23 @@ tags:
 > * `HttpOnly`告知浏览器**不允许通过脚本`document.cookie`去更改**这个Cookie值
 > * `Secure`。当`Secure`值为`true`时，在HTTP中是无效的，**在HTTPS中才有效**
 
+> 知道Cookie在报文头中的具体格式后，下面我们将Cookie序列化成符合规范的字符串，相关代码如下：
+> ```JS
+> var serialize = function (name, val, opt) {
+>     var pairs = [name + '=' + encode(val)];
+>     opt = opt || {};
+> 
+>     if (opt.maxAge) pairs.push('Max-Age=' + opt.maxAge);
+>     if (opt.domain) pairs.push('Domain=' + opt.domain);
+>     if (opt.path) pairs.push('Path=' + opt.path);
+>     if (opt.expires) pairs.push('Expires=' + opt.expires.toUTCString());
+>     if (opt.httpOnly) pairs.push('HttpOnly');
+>     if (opt.secure) pairs.push('Secure');
+> 
+>     return pairs.join('; ');
+> };
+> ```
+
 > **`res.setHeader`的第二个参数可以是一个数组**，如下所示：
 > ```JS
 > res.setHeader('Set-Cookie', [serialize('foo', 'bar'), serialize('baz', 'val')]);
