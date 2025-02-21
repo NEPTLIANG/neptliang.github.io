@@ -297,6 +297,239 @@ mark / abbre = detail / detailImg
 
 # 拖动排序
 
+```JS
+const data = [
+    { index: 0, hash: 'yule', name: '娱乐', background: 'red' },
+    { index: 1, hash: 'yinyue', name: '音乐', background: 'lightsalmon' },
+    { index: 2, hash: 'wudao', name: '舞蹈', background: 'lightseagreen' },
+    { index: 3, hash: 'shenghuo', name: '生活', background: 'blue' },
+];
+let zIndex = 0;
+
+const init = data => {
+    const contentElement = document.getElementById('content');
+    const tabBox = document.getElementById('tabBox');
+    let contentStr = '';
+    let tabStr = '';
+    data.forEach(i => {
+        contentStr += `<div id="${i.hash}" style="background: ${i.background}">
+        ${i.name}</div>`;
+        tabStr += `<li><a href="#${i.hash}">${i.name}</a></li>`;
+    });
+    contentElement.innerHTML = contentStr;
+    console.log({tabStr})
+    tabBox.innerHTML = tabStr;
+
+    const liList = tabBox.getElementsByTagName('li');
+
+    const move = function (e) {
+        // 阻止拖动的默认行为
+        e.preventDefault();
+        // 跟随光标
+        this.style.top = e.pageY - this.y + this.top + 'px';
+        // 动画效果
+        for (let i = 0; i < liList.length; i++) {
+            // 如果这个liList[i]就是this，就不用比较了
+            if (liList[i] === this) { continue; }
+            // 当前项
+            const currentLi = liList[i];
+            console.log(this.offsetTop, currentLi.offsetTop, this.i, currentLi.i);
+            if (this.offsetTop > currentLi.offsetTop
+                && this.i < currentLi.i
+            ) {
+                /* 如果当前项的 offsetTop 大于了 currentLi 的 offsetTop，
+                    就让 currentLi 把自己的位置让出来 */
+                currentLi.style.marginTop = -currentLi.offsetHeight + 'px';
+            }
+            if (this.offsetTop < currentLi.offsetTop
+                && this.i < currentLi.i
+            ) {     //还原
+                currentLi.style.marginTop = 0 + 'px';
+            }
+            if (this.offsetTop < currentLi.offsetTop
+                && this.i > currentLi.i
+            ) {     //下面的目录项往上移时的变化
+                currentLi.style.marginTop = currentLi.offsetHeight + 'px';
+            }
+            if (this.offsetTop > currentLi.offsetTop
+                && this.i > currentLi.i
+            ) {     //还原
+                currentLi.style.marginTop = 0 + 'px';
+            }
+            console.log(currentLi.style.marginTop);
+        }
+    }
+
+    // 倒着是因为有样式问题，因为定位会脱离文档流
+    for (let i = liList.length - 1; i >= 0; i--) {
+        // console.log(liList[i].offsetTop, liList[i].offsetLeft, liList[i].offsetParent)
+        liList[i].style.top = liList[i].offsetTop + 'px';
+        liList[i].style.position = 'absolute';
+        liList[i].i = data[i].index;
+
+        liList[i].onmousedown = function (e) {
+            this.y = e.pageY;
+            this.top = Number.parseFloat(this.style.top);
+
+            // 永远保持被拖动的盒子在最上层
+            this.style.zIndex = ++zIndex;
+            // 用事件委托绑定鼠标移动事件
+            document.onmousemove = move.bind(this);
+        }
+
+
+        window.ondragstart = e => {     //须阻止页面触发 drag 相关事件，否则后面的 mouseup 不触发
+            e.preventDefault();
+            e.stopPropagation();
+        };
+        liList[i].onmouseup = function () {
+            // 清除document上的移动事件
+            document.onmousemove = null;
+
+            for (let i = 0; i < liList.length; i++) {
+                // 要把当前的 li 和被拖动的 li 的距离存起来
+                liList[i].distance = Math.abs(this.offsetTop - liList[i].offsetTop);
+            }
+
+            // 根据distance排序
+            let ary = [...liList].sort((a, b) => a.distance - b.distance);
+            console.log(ary.map(i => i.style.marginTop));
+            // 找出 ary 里 marginTop 不是 0px 的 li
+            let close = ary.find(i => i.style.marginTop     //排除掉自己（未设置 marginTop 故为空）
+                && i.style.marginTop !== '0px'
+            );
+            if (!close) {   //若顺序没有改变，则复位
+                return this.style.top = this.top + 'px';
+            }
+
+            // 取到当前被拖动的 li
+            let current = data.splice(this.i, 1)[0];
+            data.splice(close.i, 0, current);
+
+            data.forEach((item, index) => {
+                item.index = index
+            })
+
+            init(data);
+        }
+    }
+};
+
+init(data);
+```
+
+```HTML
+<html>
+    <head>
+        <meta charset="utf-8">
+    </head>
+
+    <body>
+        <div id="content" class="content"></div>
+        <div>
+            <ul id="tabBox" class="tab-box"></ul>
+        </div>
+    </body>
+
+    <script src="./index.js"></script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+        }
+        ul,
+        li {
+            list-style: none;
+        }
+        a {
+            display: block;
+            text-decoration: none;
+            color: #000;
+        }
+        #content {
+            overflow: hidden;
+            background: pink;
+            margin: 0 auto;
+            width: 800px;
+        }
+        #content div {
+            height: 200px;
+            font-size: 40px;
+            line-height: 200px;
+            text-align: center;
+        }
+        #tabBox {
+            position: relative;
+            width: 50px;
+            position: fixed;
+            left: 0;
+            top: 50px;
+            /* top: 0px; */
+        }
+        #tabBox a {
+            text-align: center;
+            float: left;
+            width: 100px;
+            border: 1px solid #000;
+            height: 50px;
+            font-size: 20px;
+            line-height: 50px;
+        }
+        #tabBox li {
+            float: left;
+            user-select: none;
+            transition: margin .2s ease 0s;
+            display: block;
+            background: #fff;
+            margin-top: 0;
+        }
+    </style>
+</html>
+```
+
+<!-- ---
+
+
+# 闭包总结
+
+面试回答维度：
+
+* 基础知识
+* 实战应用
+* 高阶应用
+* 源码阅读
+* 插件组件封装
+
+切忌背书式回答，需要润色一个故事
+
+1. stack、heap、EC、VO、AO、GO、scope、scope-chain
+2. GC（浏览器垃圾回收机制）：标记清除、引用计数
+3. 实际应用及优缺点
+4. 进阶专题：单例模式、惰性函数、柯里化函数、compose组合函数……
+5. 再次进阶：手撕源码（jQuery源码、Lodash源码、Redux源码）
+6. 臻于大成：插件组件封装
+
+注：儒家思想“温良恭俭让”；不要展开得太细（留一些线索给面试官接着问即可）；剧本精神
+
+否则很难在有限的时间内把更多自己的优点传达给面试官，所以要在回答的过程中暴露出面试官感兴趣的点
+
+例：“谈谈对闭包的理解”
+
+工作中遇到过一个bug，发现自己对闭包理解得不是很好，于是自己**利用下班时间查阅了大量资料，对闭包作了一个详细深入的了解**，接下来我把**我对闭包的理解**跟您说一下，**但是毕竟您的经验比我多，您看看有哪方面说得不到位，欢迎您指正**。
+
+我认为闭包还是比较重要的，毕竟它是JS最底层的部分之一，在我们平时开发也好，**研究源码**的时候也好，闭包的应用场景我们还是能看到很多的。谈及对闭包的理解的话首先从它的**基础知识**开始吧。（“我认为闭包是怎么形成的”，抛专业名词：）闭包**形成的主要原因**是由于浏览器的垃圾回收机制，函数执行产生的上下文中的某些东西被外面的东西引用了，导致当前上下文不能被释放，所以产生了闭包，除了保护其内部的变量不受外界干扰，还能把变量值保留下来，供下级上下文使用（把上下文、垃圾回收机制、作用域、作用域链等基础知识梳理出来）。
+
+**在我日常工作当中，用到闭包的地方**，比如循环事件绑定的时候，用let的方式，在绑定的方法中可以用到索引，其中let的原理本质上也是闭包；还有循环创建多个定时器，让它每间隔一秒做某件事，我也是使用闭包方案解决索引问题（找**两到三个对应例子**）。**还有其他例子，一时间想不起来，毕竟闭包还是挺常用的。**
+
+除此之外，**工作之余我也会看一些源码、学习一些思想，给公司做一些插件、组件的封装，提高开发效率**。之前**看源码的时候**，比如jQuery的源码，它刚开始的时候检测环境，用的也是闭包；之前还看过Redux源码，它里面的_________也是用闭包实现的。而且之前**我工作过程中**，涉及到函数的防抖和节流，**封装方法**的时候，也用到了闭包、柯里化函数思想实现。还有就是我们之前的工作过程中，涉及一个函数的嵌套，层层嵌套，比较麻烦，所以写了一个compose，组合式函数，让它能扁平化地处理，也是用闭包的机制实现的。（找**四、五个案例，不用详细描述**，大概说出用的哪个办法、怎么弄，示意自己工作过程中封装过很多公共的函数，提高了开发效率，示意自己基础知识的把握，示意自己阅读源码、实战应用、高阶应用的经历。）
+
+总之我认为闭包还是很常用、很重要的。**但是呢，因为它不释放，内存消耗也比较大，所以我们在项目中还是应该慎用闭包、合理使用闭包**。
+
+**我现在暂时能想到的就这些，您看看还有哪些地方不足的，麻烦您指正一下。**
+
+（让面试官感受到非技术方面的：主动学习、有想法会总结、不是仅仅Ctrl C-V、肯下功夫；技术方面：读过源码、做过封装） -->
+
 
 ---
 
