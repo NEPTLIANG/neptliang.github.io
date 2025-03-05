@@ -75,7 +75,7 @@ COUNTING-SORT(A, B, k)
 ### JS实现
 
 
-```JS
+```JavaScript
 // 力扣274. H 指数
 /**
  * 计数排序
@@ -136,7 +136,7 @@ RADIX-SORT(A, d)
 
 ### JS实现
 
-```JS
+```JavaScript
 // 力扣2343. 裁剪数字后查询第 K 小的数字
 /**
  * 补零
@@ -157,7 +157,7 @@ const padStrings = (list, {
         list.map(element => getKey(element))
         :
         list;
-    const maxLen = keys[1].length;      //所有 nums[i].length 的长度 相同，所以不逐个判断了。记得跳过 keys[0]
+    const maxLen = keys[1].length;      //所有 nums[i].length 的长度相同，所以不逐个判断了。记得跳过 keys[0]
     return {
         list: hasSatelliteData ? 
             list.map((element, index) => {
@@ -273,18 +273,21 @@ BUCKET-SORT(A)
 
 ### JS实现
 
-```JS
+```JavaScript
 // 力扣164. 最大间距
 const MAX_BUCKET_COUNT = 100;
 
+/**
+ * 插入排序
+ * @param {number[]} nums 待排序数组
+ * @returns {number[]} 排序后的数组
+ */
 const insertionSort = nums => {
     if (!Array.isArray(nums)) { return nums; }
     const sorted = [nums.shift()];
     nums.forEach(item => {
         let target = 0;
-        // console.log({item, sorted, target})
         for (let index = sorted.length - 1; index >= 0; index--) {
-            // console.log(1, {a})
             if (sorted[index] > item) {
                 sorted[index + 1] = sorted[index];
                 continue;
@@ -294,10 +297,14 @@ const insertionSort = nums => {
         };
         return sorted[target] = item;
     });
-    // console.log({sorted}, Date.now() - before)
     return sorted;
 }
 
+/**
+ * 桶排序
+ * @param {number[]} nums 待排序数组
+ * @returns {number[]} 排序后的数组
+ */
 const bucketSort = nums => {
     const { length } = nums
     if (!Array.isArray(nums) || length < 2) { return nums; }
@@ -305,11 +312,10 @@ const bucketSort = nums => {
         Math.min(length, MAX_BUCKET_COUNT)
         :
         length;
-    const bucket = Array(bucketCount);
     const min = Math.min(...nums);
     const max = Math.max(...nums);
     const bucketSize = (max - min) / bucketCount || 1;
-    // console.log({nums, min, max, bucketSize, bucketCount})
+    const bucket = Array(bucketCount);
     nums.forEach(num => {
         if (Number.isNaN(+num)) { return; }
         const index = Math.floor((num - min) / bucketSize);
@@ -318,7 +324,6 @@ const bucketSort = nums => {
         }
         bucket[index].push?.(num);
     });
-    // console.log({bucket});
     return bucket.map(array => insertionSort(array))
         .reduce((previous, next) => previous?.concat(next));
 };
